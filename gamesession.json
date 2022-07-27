@@ -1,0 +1,84 @@
+// GAME SESSION 
+{
+  "CampaingId": 1,
+  "id": 11,
+  "players": [
+    {
+      "hash": "123456",
+      "name": "Lucão",
+      "isKiller": false,
+      "alive": false,
+      "attributes": [1,2],
+      "motive": [2],
+      "suspects_actions": null,
+      "winner": false
+    },
+    {
+      "hash": "777777",
+      "name": "Kendão",
+      "isKiller": true,
+      "alive": true,
+      "attributes": [
+        1,2
+      ],
+      "motive": [],
+      "suspects_actions": 4,
+      "winner": true
+    },
+    {
+      "hash": "222222",
+      "name": "Josy",
+      "isKiller": false,
+      "alive": true,
+      "attributes": [5],
+      "motive": [1],
+      "suspects_actions": null,
+      "winner": false
+    },
+    {
+      "hash": "626262",
+      "name": "Jaque",
+      "isKiller": false,
+      "alive": true,
+      "attributes": [],
+      "motive": [
+        3
+      ],
+      "suspects_actions": 2,
+      "winner": false
+    },
+  ],
+  "isAccusing": false,
+  "accusations": [
+    {
+      "initiation__user__hash": "123456",
+      "accusated__user__hash": "777777",
+      "votes": [true, false, false],
+      "eliminated": false
+    },
+    {
+      "initiation__user__hash": "777777",
+      "accusated__user__hash": "123456",
+      "votes": [true, false, false],
+      "eliminated": false
+    },
+    {
+      "initiation__user__hash": "777777",
+      "accusated__user__hash": "626262",
+      "votes": [true, true],
+      "eliminated": false
+    },
+  ],
+  "investigations": [
+    {
+      "investigationId": 1,
+      "players": ["626262", "123456", "222222"],
+      "whoWasKilled" : null
+    },
+    {
+      "investigationId": 2,
+      "players": ["777777", "123456", "222222"],
+      "whoWasKilled" : "123456"
+    },
+  ]
+}

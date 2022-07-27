@@ -1,0 +1,68 @@
+{
+  "name" : "AP lucão",
+  "id": 1,
+  "narrative": "Você foi convidado para uma partida de jogos no ap do {usuario}, la a luz se apagou, alguém derrubou a mesa e ouviram alguém ser assassinado no banheiro com {arma}",
+  "narrative__changes": [ // VARIAVEIS PARA ALTERAR O TEXTO DA NARRATIVE
+    {
+      "tag": "{usuario}",
+      "values": [
+        "Lucas", "Kendão", "Josy"
+      ]
+    },
+    {
+      "tag": "{arma}",
+      "values": [
+        "Faca", "Colher", "Consolo vibrador DK 2000"
+      ]
+    }
+  ],
+  "suspects_actions": [ // DAR PARA CADA ASSASSINO UM SUSPECT_ACTION, E SORTEAR PARA VÍTIMAS TAMBÉM
+    "Foi quem acendeu a luz",
+    "Estava próximo do interruptor",
+    "Foi o ultimo a sair do fundos dos quartos",
+    "Estava assubiando durante o escuro",
+    "Estava perto das facas da cozinha, mexendo",
+    "Foi o ultimo a ir no banheiro"
+  ],
+  "reasons": [ // TODA VITIMA POSSUI UM MOTIVO
+    "Você veio com vontade de descolar uma comida grátis",
+    "Você estava ansioso por algum motivo em particular",
+    "VocÊ não gosta do hóspede e veio com intuito de terminar a amizade",
+    "Você está apaixonado pelo hóspede da casa",
+    "Sua mãe esta muito doente e estava precisando se distrair",
+    "Tem alguém da mesa que você gosta muito mas tem medo de confessar"
+  ],
+  "investigations": [ // SÃO AÇÕES DOS USUÁRIOS QUE PRECISAM VOTAR QUEM IRÁ
+    {
+      "id": 1,
+      "name": "Checar o corpo no banheiro",
+      "risk": 0,
+      "results": {
+        "hasAssassin": {
+          message: "Aos entrarem no banheiro, entre eles estava um silecio inquietador, derrepente alguém apagou a luz e pode ouvir as vozes de {USUARIO} sendo esfaqueado",
+        },
+        "message": ""
+      }
+    },
+    {
+      "id": 2,
+      "name": "Investigar a porta de entrada",
+      "risk": 0
+    },
+    {
+      "id": 3,
+      "name": "Checar os outros quartos",
+      "risk": 0
+    },
+    {
+      "id": 4,
+      "name": "Checar escadaria",
+      "risk": 10
+    },
+    {
+      "id": 5,
+      "name": "Checar janelas dos quartos",
+      "risk": 10
+    },
+  ]
+}
