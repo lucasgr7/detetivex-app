@@ -22,7 +22,7 @@ async function handleChoosePlayerCount(playerCount: number){
     id_campaign: selectedCampaing.value.id,
     player_count: playerCount
   });
-  store.setGameSession(response);
+  store.createSession(response);
 }
 
 </script>

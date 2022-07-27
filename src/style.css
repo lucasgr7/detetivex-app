@@ -1,7 +1,11 @@
+@font-face {
+  font-family: UglyByte;
+  src: url("assets/fonts/BebasNeue-Regular.ttf") format("opentype");
+}
 :root {
-  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
-  font-size: 16px;
-  line-height: 24px;
+  font-family: UglyByte, Inter, Avenir, Helvetica, Arial, sans-serif;
+  font-size: 36px;
+  line-height: 16px;
   font-weight: 400;
 
   color-scheme: light dark;
@@ -26,10 +30,10 @@ a:hover {
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
+  min-width: 220px;
   min-height: 100vh;
+  color-scheme: dark;
+  background-color:rgba(18, 18, 18, 0.87)
 }
 
 h1 {
@@ -57,13 +61,13 @@ button:focus-visible {
 }
 
 .card {
-  padding: 2em;
+  padding: 1em;
 }
 
 #app {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 10px;
+  padding: 0px;
   text-align: center;
 }
 

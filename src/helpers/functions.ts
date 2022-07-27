@@ -19,8 +19,15 @@ export function generateHash(): string {
 }
 
 export function dealWithError(exc: any) {
+  console.log(exc);
   ElNotification({
     message: exc,
     type: 'error'
   })
+}
+
+export function chance(limit: number){
+  const chance = Math.floor(Math.random() * limit)
+  console.log(chance);
+  return chance;
 }

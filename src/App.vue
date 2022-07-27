@@ -8,8 +8,18 @@ import { onMounted } from "vue";
 
 const store = useStore();
 
-onMounted(() => {
+const params = new URLSearchParams(window.location.search);
+const idGameSession = parseInt(params.get("id")?.toString() ?? '0');
+
+onMounted(async() => {
   store.loadAttributes();
+  if(idGameSession){
+    if(store.gameSession?.id != idGameSession){
+      store.clearGameSession();
+    }
+    store.gameSession.id = idGameSession;
+    await store.refreshGameSession();
+  }
 })
 </script>
 
@@ -23,6 +33,9 @@ onMounted(() => {
 </template>
 
 <style scoped>
+span{
+  font-size: 18px;
+}
 .logo {
   height: 6em;
   padding: 1.5em;
