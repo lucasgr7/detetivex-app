@@ -49,6 +49,7 @@ export const useStore = defineStore('store', {
       this.gameSession = await fetchGameSession(gameSession.id);
       const urlParams = new URLSearchParams(window.location.search);
       urlParams.set('id', gameSession.id.toString());
+      window.location.search = urlParams.toString();
 
     },
     async refreshGameSession(){
@@ -60,8 +61,11 @@ export const useStore = defineStore('store', {
         console.log('Sem atualização')
       }
     },
-    async insertPlayer(name: string){
-      await postPlayerIntoGame(this.gameSession.id, name, this.hash);
+    async insertPlayer(name: string, hash?: string){
+      if(!hash){
+        hash = this.hash;
+      }
+      await postPlayerIntoGame(this.gameSession.id, name, hash);
       console.log(`Estou entrando no jogo ${this.gameSession.id} ${name} - ${this.hash}`)
     },
     async loadAttributes() {

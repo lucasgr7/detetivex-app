@@ -37,14 +37,14 @@ const store = useStore();
             <label>Nome</label>&ThickSpace;{{ store.myPlayer?.name }}
           </el-row>
         </el-col>
-        <el-col style="color: red" :xs="8">
+        <el-col style="color: rgb(255, 141, 141)" :xs="8">
           <el-row justify="end">
             {{ type }}
           </el-row>
         </el-col>
       </el-row>
       <el-row v-if="store.suspect?.who != null">
-        <label>Suspeita de</label>&ThickSpace;<span style="color: red">{{ store.suspect?.who?.name }}</span>
+        <label>Suspeita de</label>&ThickSpace;<span style="color: rgb(255, 141, 141)">{{ store.suspect?.who?.name }}</span>
       </el-row>
       <el-row v-else>
         <label>Suspeita de</label>&ThickSpace;Ninguém

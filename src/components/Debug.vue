@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { useStore } from '../store/appStore';
 import { _game_with_me } from '../mocks/gamesession'
+import { faker } from '@faker-js/faker';
 
 function clearSuspiscious(){
   store.suspect = {};
@@ -9,6 +10,12 @@ function clearSuspiscious(){
 function clearAttributes(){
 store.myAttributes = [];
 store.generateCharacterAttributes();
+}
+async function addPlayer(){
+  const fakePlayer = faker.name.findName();
+  const fakerId = faker.phone.number();
+  await store.insertPlayer(fakePlayer, fakerId);
+  console.log(`Add Player ${fakePlayer} - ${fakerId}`)
 }
 const store = useStore();
 </script>
@@ -24,10 +31,13 @@ const store = useStore();
       New Game
     </el-button>
     <el-button @click="clearSuspiscious">
-      Clear suspects
+      Novos Suspeitos
     </el-button>
     <el-button @click="clearAttributes">
-      Clear attributes
+      Nova Personalidade
+    </el-button>
+    <el-button @click="addPlayer">
+      Add Jogador
     </el-button>
     <el-button @click="store.clearGameSession()">
       Nova sessão

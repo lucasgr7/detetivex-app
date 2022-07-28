@@ -11,7 +11,7 @@ import AccusationScreen from './AccusationScreen.vue';
 import _ from 'lodash';
 
 const store = useStore();
-const inputPlayerName = ref(false);
+const isBusy = ref(false);
 const playerName = ref('');
 const showAccusation = ref(false);
 
@@ -25,7 +25,7 @@ const players = computed(() => {
 })
 
 watch(() => store.firstTime, () => {
-  inputPlayerName.value = store.firstTime;
+  isBusy.value = store.firstTime;
 });
 watch(() => store.gameSession.players, () => {
   if(store.gameSession.players?.length === store.gameSession.player_count){
@@ -33,14 +33,22 @@ watch(() => store.gameSession.players, () => {
   }
 });
 
+// computed variables
 const someoneStartedAccusation = computed(() => {
   return store.gameSession.is_accusing;
+});
+const isGameReady = computed(() => {
+  const isGameReady = store.gameSession.player_count === store.gameSession?.players.length;
+  if(isGameReady){
+    store.startGame();
+  }
+  return isGameReady;
 })
 
 // refresh page data
 setInterval(async () => {
   if(!store) return;
-  if(store.gameSession?.is_accusing) return;
+  if(store.gameSession?.is_accusing || isBusy.value) return;
   await store.refreshGameSession();
   console.log('refresh game');
 }, 10000)
@@ -48,7 +56,7 @@ setInterval(async () => {
 // actions
 function handleSendUserName(){
   store.insertPlayer(playerName.value);
-  inputPlayerName.value = false;
+  isBusy.value = false;
 }
 function startAccusation(){
   showAccusation.value = true;
@@ -60,7 +68,7 @@ function endAccusation(){
 }
 
 onMounted(async () => {
-  inputPlayerName.value = store.firstTime;
+  isBusy.value = store.firstTime;
   await store.loadCampaing();
 })
 </script>
@@ -68,31 +76,39 @@ onMounted(async () => {
 <template>
 <div id="game">
   <el-dialog
-      v-model="inputPlayerName"
+      v-model="isBusy"
       title="Seu nome"
       width="100%"
       destroy-on-close
       center
+      fullscreen
       :show-close="false"
       :close-on-click-modal="false"
       :close-on-press-escape="false"
     >
-    <el-row>
+    <el-row align="middle" style="height: 200px">
       <el-input autofocus type="text" v-model="playerName">
       </el-input>
     </el-row>
-      <template #footer>
+    <el-row justify="center">
         <span class="dialog-footer">
           <el-button plain effect="dark" type="primary" @click="handleSendUserName">Protinho</el-button
           >
         </span>
-      </template>
+    </el-row>
   </el-dialog>
   <Debug></Debug>
   <ListPlayers :players="players" 
     :columns="48"></ListPlayers>
-  <Profile></Profile>
-  <Narrative></Narrative>  
+  <div v-if="isGameReady">
+    <Profile></Profile>
+    <Narrative></Narrative>
+  </div>
+  <div class="wait" v-else>
+    <el-card v-loading="!isGameReady"
+    element-loading-text="Aguardando jogadores...">
+    </el-card>
+  </div>
   <GameJoystick 
     @accuse="startAccusation"></GameJoystick>
   <AccusationScreen 
@@ -107,6 +123,12 @@ onMounted(async () => {
   max-width: 100%;
   padding: 15px;
   font-size: 20px;
+  div.wait{
+    margin-top: 20px;
+    .el-card{
+      height: 200px;
+    }
+  }
 }
 .card-margin{
   margin-top: 40px;
