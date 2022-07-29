@@ -1,5 +1,5 @@
 import { dealWithError } from "../helpers/functions";
-import { TypeCreateCampaingResponse, TypeGameSessionResponse, TypePlayerAttribute } from "../types/api";
+import { Player, TypeCreateCampaingResponse, TypeGameSessionResponse, TypePlayerAttribute } from "../types/api";
 import { TypeCampaing } from "../types/campaing";
 import { TypeCreateGameSession } from "../types/post";
 
@@ -39,6 +39,11 @@ export async function fetchGameSession(id: number): Promise<TypeGameSessionRespo
 export async function fetchCampaing(id: number): Promise<TypeCampaing> {
   const response = await fetch(`${api}/campaigns/${id}`);
   return response.json().then(r => r as TypeCampaing);
+}
+
+export async function fetchAllCampaings(): Promise<TypeCampaing[]> {
+  const response = await fetch(`${api}/campaigns`);
+  return response.json().then(r => r as TypeCampaing[]);
 }
 
 export async function postPlayerIntoGame(idGameSession: number, name: string, hash: string): Promise<void> {
@@ -93,6 +98,27 @@ export async function postAccusation(hash: string, id_game_session: number, valu
       body: JSON.stringify({
         hash,
         value
+      })
+    });
+    if(!response.ok){
+      throw response.statusText ?? response;
+    }
+  }
+  catch(exc: any){
+    dealWithError(exc);
+  }
+}
+
+export async function postInvestigation(id_investigation: number, players: Player[], idGameSession: number): Promise<void> {
+  try{
+    const response = await fetch(`${api}/sessions/${idGameSession}/investigations`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json;charset=utf-8'
+      },
+      body: JSON.stringify({
+        id_investigation,
+        players
       })
     });
     if(!response.ok){

@@ -4,7 +4,7 @@ import { chance, generateHash } from "../helpers/functions"
 import type { Player, TypeCreateCampaingResponse,  TypePlayerAttribute } from '../types/api'
 import type { TypeGameSessionResponse } from "../types/game"
 
-import { fetchAttributes, fetchCampaing, fetchGameSession, postPlayerIntoGame, postStartAccusation } from "../api/scripts"
+import { fetchAllCampaings, fetchAttributes, fetchCampaing, fetchGameSession, postPlayerIntoGame, postStartAccusation } from "../api/scripts"
 import _ from "lodash"
 import { TypeCampaing } from "../types/campaing"
 import { _fake_investigation } from "../mocks/campaing"
@@ -18,7 +18,9 @@ export const useStore = defineStore('store', {
       campaing: useLocalStorage('campaing', {} as TypeCampaing),
       suspect: useLocalStorage('suspect', {}),
       myAttributes: useLocalStorage('myAttributes', [] as TypePlayerAttribute[]),
-      iVoted: useLocalStorage('iVoted', false)
+      iVoted: useLocalStorage('iVoted', false),
+      campaings: useLocalStorage('campaings', [] as TypeCampaing[]),
+      gameHasStarted: useLocalStorage('gameHasStarted', false),
     }
   },
   getters: {
@@ -47,14 +49,36 @@ export const useStore = defineStore('store', {
     },
     firstTime: (state): boolean => {
       return state.gameSession?.players?.filter(x => x.hash === state.hash).length == 0;
+    },
+    gameisOn: (state): boolean => {
+      return state.gameSession?.players?.length === state.gameSession?.player_count 
+        && !_.isEmpty(state.gameSession)
+        && state.gameSession?.player_count > 0;
+    },
+    isReallyAccusing: (state): boolean => {
+      // if(state.gameSession?.accusations?.length > 0){
+      //   const countPlayersActive = state.gameSession.players?.filter(x => x.alive == true).length;
+      //   const lastAccusationActive = state.gameSession.accusations[state.gameSession.accusations.length - 1];
+      //   const isLastActive = lastAccusationActive.votes.length >= countPlayersActive && lastAccusationActive.eliminated != null;
+      //   return state.gameSession.is_accusing && isLastActive;
+      // }else{
+        return state.gameSession.is_accusing
+      // }
     }
   },
   actions: {
-    clearGameSession() {
+    exitGame() {
+      this.clearMemory();
+      const urlParams = new URLSearchParams(window.location.search);
+      urlParams.delete('id');
+      window.location.search = urlParams.toString();
+    },
+    clearMemory() {
       this.gameSession = {} as TypeGameSessionResponse;
       this.suspect = {};
       this.campaing = {} as TypeCampaing;
       this.myAttributes = [] as TypePlayerAttribute[];
+      this.gameHasStarted = false;
     },
     setGameSession(game: any){
       this.gameSession = game;
@@ -85,24 +109,36 @@ export const useStore = defineStore('store', {
     async loadAttributes() {
       this.attributes = await fetchAttributes();
     },
+    async loadAllCampaings(){
+      this.campaings = await fetchAllCampaings();
+    },
     async loadCampaing() {
       this.campaing = await fetchCampaing(this.gameSession.id_campaign);
       if(!this.campaing.investigations || _.isEmpty(this.campaing.investigations)){
         this.campaing.investigations = _fake_investigation;
       }
       // reset iVoted if user refresh
-      if(this.iVoted && !this.gameSession.is_accusing){
+      if(this.iVoted && !this.isReallyAccusing){
         this.iVoted = false;
       }
     },
     async startGame(){
-      this.generateSuspect();
-      this.generateCharacterAttributes();
+      if(this.gameisOn){
+        this.generateSuspect();
+        this.generateCharacterAttributes();
+        this.gameHasStarted = true;
+      }
     },
     async generateSuspect() {
+      console.warn('Gerando suspeito');
       const FROM_HUNDRED = 101, CHANCE_SUSPECT_SOMEONE = 64, SUSPECT_REAL_KILLER = 33;
-      if(_.isEmpty(this.suspect) && !this.myPlayer.is_killer){
-        if(chance(FROM_HUNDRED) < CHANCE_SUSPECT_SOMEONE){
+      if(!this.campaing){
+        await this.loadCampaing();
+      }
+      debugger;
+      if(_.isEmpty(this.suspect) && this.myPlayer && !this.myPlayer?.is_killer){
+        debugger;
+        if(chance(FROM_HUNDRED) < CHANCE_SUSPECT_SOMEONE){ // SUSPEITA?
           if(chance(FROM_HUNDRED) < SUSPECT_REAL_KILLER){ // 33% suspect a real killer
             this.suspect = {
               who: this.gameKillers[chance(this.gameKillers?.length)],

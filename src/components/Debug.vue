@@ -39,7 +39,7 @@ const store = useStore();
     <el-button @click="addPlayer">
       Add Jogador
     </el-button>
-    <el-button @click="store.clearGameSession()">
+    <el-button @click="store.exitGame()">
       Nova sessão
     </el-button>
   </el-row>

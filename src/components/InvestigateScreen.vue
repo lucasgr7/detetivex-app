@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { ElNotification } from 'element-plus';
 import { onMounted, ref, reactive, watch } from 'vue';
+import { postInvestigation } from '../api/scripts';
 import { useStore } from '../store/appStore';
 import { Player } from '../types/api';
 import { Investigation } from '../types/campaing';
@@ -33,7 +34,7 @@ function handleClickScenario(scenario: Investigation) {
   scenario.selected = true;
   scenarioSelected.value = scenario;
 }
-function handleConfirm() {
+async function handleConfirm() {
   if (!scenarioSelected.value) {
     ElNotification({
       message: 'Selecione um cenário, duh',
@@ -52,10 +53,8 @@ function handleConfirm() {
       });
       return;
     }
-    emits('start', {
-      players: playersSelected.value,
-      scenario: scenarioSelected.value
-    });
+    playersSelected.value.push(store.myPlayer);
+    await postInvestigation(scenarioSelected.value.id, playersSelected.value.map(x => x.hash), store.gameSession.id);
     handleAusent();
   }
 }
@@ -80,8 +79,6 @@ onMounted(() => {
 <template>
   <el-dialog v-model="props.showInvestigation" :title="title" width="100%" destroy-on-close center fullscreen
     :show-close="false" :close-on-click-modal="false" :close-on-press-escape="false">
-    {{ store.gameSession?.investigations }}
-
     <div v-if="state === STATE_SELECT_SCENARIO">
 
       <el-card class="scenario" v-for="(item, i) of scenarios" :key="i" :class="{ 'selected': item.selected == true }"

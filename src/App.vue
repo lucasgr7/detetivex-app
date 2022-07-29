@@ -9,25 +9,26 @@ import { onMounted } from "vue";
 const store = useStore();
 
 const params = new URLSearchParams(window.location.search);
-const idGameSession = parseInt(params.get("id")?.toString() ?? '0');
+const idGameSession = parseInt(params.get("id")?.toString() ?? 0);
 
 onMounted(async() => {
+  store.loadAllCampaings();
   store.loadAttributes();
-  if(idGameSession){
+  if(idGameSession != 0){
     if(store.gameSession?.id != idGameSession){
-      store.clearGameSession();
+      store.clearMemory();
     }
     store.gameSession.id = idGameSession;
     await store.refreshGameSession();
+  }else{
+    store.clearMemory();
   }
 })
 </script>
 
 <template>
 <el-main>
-  <CampaingView v-if="_.isEmpty(store.gameSession)" :campaings="[
-    _campaing_1
-  ]"></CampaingView>
+  <CampaingView v-if="_.isEmpty(store.gameSession)" :campaings="store.campaings"></CampaingView>
   <Game v-else></Game>
 </el-main>
 </template>

@@ -33,15 +33,10 @@ const players = computed(() => {
 watch(() => store.firstTime, () => {
   isBusy.value = store.firstTime;
 });
-watch(() => store.gameSession.players, () => {
-  if(store.gameSession.players?.length === store.gameSession.player_count){
-    store.startGame();
-  }
-});
 
 // computed variables
 const someoneStartedAccusation = computed(() => {
-  const isAccusing = store.gameSession.is_accusing;
+  const isAccusing = store.isReallyAccusing;
   if(isAccusing){
     wasAccusing.value = true;
   }
@@ -51,8 +46,8 @@ const someoneStartedAccusation = computed(() => {
   return isAccusing;
 });
 const isGameReady = computed(() => {
-  const isGameReady = store.gameSession.player_count === store.gameSession?.players.length;
-  if(isGameReady){
+  const isGameReady = store.gameSession?.player_count === store.gameSession?.players?.length && store.gameisOn;
+  if(isGameReady && !store.gameHasStarted){
     store.startGame();
   }
   return isGameReady;
@@ -61,7 +56,10 @@ const isAlive = computed(() => {
   return store.myPlayer?.alive ?? true;
 })
 const isGameFinished = computed(() => {
-  // quantidade de assassinos == vítimas
+  // avoid game think it's over before has started
+  if(!store.myPlayer || store.gameSession.players?.length != store.gameSession?.player_count){
+    return false;
+  }
   if(store.gameKillers?.length === store.gameVictims?.length){
     return true;
   }
@@ -74,7 +72,7 @@ const isGameFinished = computed(() => {
 // refresh page data
 setInterval(async () => {
   if(!store) return;
-  if(isBusy.value || showInvestigation.value || isAlive) return;
+  if(isBusy.value || showInvestigation.value || !isAlive.value) return;
   await store.refreshGameSession();
   console.log('refresh game');
 }, 10000)

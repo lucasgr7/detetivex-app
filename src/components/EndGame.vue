@@ -10,7 +10,7 @@ const props = defineProps(['visible']);
 const isAssassinVictory = ref(false);
 const isVictimVictory = ref(false);
 function handleLeave(){
-  store.clearGameSession();
+  store.exitGame();
 }
 
 const isWinner = computed(() => {
@@ -22,7 +22,7 @@ const isWinner = computed(() => {
     return store.myPlayer?.is_killer == true ? true : false;
   }
   else{
-    return isVictimVictory.value = true;
+    isVictimVictory.value = true;
     return store.myPlayer?.is_killer == false ? true : false;
   }
 })

@@ -6,7 +6,7 @@ import gifSkull from '../assets/gifs/skull.gif';
 const store = useStore();
 const props = defineProps(['visible']);
 function handleLeave(){
-  store.clearGameSession();
+  store.exitGame();
 }
 </script>
 <template>
