@@ -18,9 +18,9 @@ const emits = defineEmits(['accuse', 'investigate', 'options'])
         </el-button>
       </el-col>
       <el-col :xs="2">
-        <span class="button" @click="emits('options')">
+        <el-button class="button" @click="emits('options')">
           ...
-        </span>
+        </el-button>
       </el-col>
     </el-row>
   </div>

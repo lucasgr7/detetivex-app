@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { ElNotification } from 'element-plus';
 import _ from 'lodash';
 import { computed, onMounted, ref } from 'vue';
 import { useStore } from '../store/appStore';
@@ -9,6 +10,13 @@ const multipleSelect = ref([] as Player[]);
 
 function handlePlayerCardClick(card: Player){
   if(!props.selection) return;
+  if(!card.alive){
+    ElNotification({
+      message: 'Selecione um jogador vivo',
+      type: 'warning'
+    });
+    return;
+  }
   
   if(!props.maxSelection){
     if(card.selected){

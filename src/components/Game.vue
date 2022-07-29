@@ -4,7 +4,7 @@ import Debug from './Debug.vue';
 import Profile from './Profile.vue';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useStore } from '../store/appStore';
-import { ElDialog } from 'element-plus';
+import { ElDialog, ElNotification } from 'element-plus';
 import GameJoystick from './GameJoystick.vue';
 import Narrative from './Narrative.vue';
 import AccusationScreen from './AccusationScreen.vue';
@@ -13,6 +13,7 @@ import InvestigateScreen from './InvestigateScreen.vue';
 import VoteAccusationScreen from './VoteAccusationScreen.vue';
 import DeathScreen from './DeathScreen.vue';
 import EndGame from './EndGame.vue';
+import Options from './Options.vue';
 
 const store = useStore();
 const isBusy = ref(false);
@@ -20,6 +21,7 @@ const playerName = ref('');
 const showAccusation = ref(false);
 const showInvestigation = ref(false);
 const wasAccusing = ref(false);
+const isOptionsVisible = ref(false);
 
 
 const players = computed(() => {
@@ -79,10 +81,18 @@ setInterval(async () => {
 
 // actions
 function handleSendUserName(){
+  if(playerName.value.trim().length == 0){
+    ElNotification({
+      message: 'Precisa de um nome',
+      type: 'warning'
+    });
+    return;
+  }
   store.insertPlayer(playerName.value);
   isBusy.value = false;
 }
 function startAccusation(){
+  if(!store.gameHasStarted) return;
   showAccusation.value = true;
 }
 function endAccusation(){
@@ -90,10 +100,14 @@ function endAccusation(){
   store.gameSession.is_accusing = false;
 }
 function startinvestigation(){
+  if(!store.gameHasStarted) return;
   showInvestigation.value = true;
 }
 function endInvestigation(){
   showInvestigation.value = false;
+}
+function showOptions(){
+  isOptionsVisible.value = true;
 }
 
 onMounted(async () => {
@@ -140,7 +154,8 @@ onMounted(async () => {
   </div>
   <GameJoystick 
     @accuse="startAccusation"
-    @investigate="startinvestigation"></GameJoystick>
+    @investigate="startinvestigation"
+    @options="showOptions"></GameJoystick>
   <AccusationScreen 
     :showAccusation="showAccusation"
     @close="endAccusation"></AccusationScreen>
@@ -151,6 +166,7 @@ onMounted(async () => {
   <VoteAccusationScreen :visible="someoneStartedAccusation"></VoteAccusationScreen>
   <DeathScreen :visible="!isAlive"></DeathScreen>
   <EndGame :visible="isGameFinished"></EndGame>
+  <Options :visible="isOptionsVisible"></Options>
   <el-row style="height: 100px"></el-row>
 </div>
 </template>

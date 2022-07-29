@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ElNotification } from 'element-plus';
-import { onMounted, ref, reactive, watch } from 'vue';
+import { onMounted, ref, watch, computed } from 'vue';
 import { postInvestigation } from '../api/scripts';
 import { useStore } from '../store/appStore';
 import { Player } from '../types/api';
@@ -13,8 +13,7 @@ const props = defineProps(['showInvestigation']);
 const emits = defineEmits(['close', 'start']);
 const store = useStore();
 const scenarioSelected = ref();
-const playersSelected = ref([]);
-const scenarios = ref([] as Investigation[]);
+const playersSelected = ref([] as Player[]);
 const state = ref(STATE_SELECT_SCENARIO)
 const title = ref('Selecione onde investigar');
 
@@ -26,6 +25,9 @@ watch(() => state.value, () => {
   else if (state.value === STATE_SELECT_SCENARIO) {
     title.value = 'Selecione onde investigar'
   }
+})
+const scenarios = computed(() => {
+  return store.campaing?.investigations
 })
 
 // actions
@@ -69,8 +71,7 @@ function handleUserSelected(players: any) {
 }
 
 // mounted
-onMounted(() => {
-  scenarios.value = store.campaing?.investigations;
+onMounted(() => {;
   playersSelected.value = [];
   scenarioSelected.value = null;
   state.value = STATE_SELECT_SCENARIO;
