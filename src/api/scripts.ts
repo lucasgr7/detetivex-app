@@ -62,15 +62,16 @@ export async function postPlayerIntoGame(idGameSession: number, name: string, ha
   }
 }
 
-export async function startAccusation(user_hash: string,  id_game_session: number): Promise<void> {
+export async function postStartAccusation(user_hash: string, accussed_hash: string, id_game_session: number): Promise<void> {
   try{
-    const response = await fetch(`${api}/sessions/${id_game_session}/startaccusation`, {
+    const response = await fetch(`${api}/sessions/${id_game_session}/accusations`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json;charset=utf-8'
       },
       body: JSON.stringify({
-        user_hash,
+        hash_accuser: user_hash,
+        hash_accused: accussed_hash
       })
     });
     if(!response.ok){
@@ -82,16 +83,16 @@ export async function startAccusation(user_hash: string,  id_game_session: numbe
   }
 }
 
-export async function postAccusation(user_hash: string, accused_hash: string | null, id_game_session: number): Promise<void> {
+export async function postAccusation(hash: string, id_game_session: number, value: boolean): Promise<void> {
   try{
-    const response = await fetch(`${api}/sessions/${id_game_session}/accuse`, {
+    const response = await fetch(`${api}/sessions/${id_game_session}/accusations/votes`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json;charset=utf-8'
       },
       body: JSON.stringify({
-        user_hash,
-        accused_hash
+        hash,
+        value
       })
     });
     if(!response.ok){

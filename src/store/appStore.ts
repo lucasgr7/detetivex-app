@@ -4,9 +4,10 @@ import { chance, generateHash } from "../helpers/functions"
 import type { Player, TypeCreateCampaingResponse,  TypePlayerAttribute } from '../types/api'
 import type { TypeGameSessionResponse } from "../types/game"
 
-import { fetchAttributes, fetchCampaing, fetchGameSession, postPlayerIntoGame } from "../api/scripts"
+import { fetchAttributes, fetchCampaing, fetchGameSession, postPlayerIntoGame, postStartAccusation } from "../api/scripts"
 import _ from "lodash"
 import { TypeCampaing } from "../types/campaing"
+import { _fake_investigation } from "../mocks/campaing"
 
 export const useStore = defineStore('store', {
   state: () => {
@@ -17,6 +18,7 @@ export const useStore = defineStore('store', {
       campaing: useLocalStorage('campaing', {} as TypeCampaing),
       suspect: useLocalStorage('suspect', {}),
       myAttributes: useLocalStorage('myAttributes', [] as TypePlayerAttribute[]),
+      iVoted: useLocalStorage('iVoted', false)
     }
   },
   getters: {
@@ -27,9 +29,21 @@ export const useStore = defineStore('store', {
       return _.filter(state.gameSession?.players, (it) => 
       it.hash !== state.hash)
     },
+    everyoneButMeAlive: (state): Player[] => {
+      return _.filter(state.gameSession?.players, (it) => 
+      it.hash !== state.hash)
+    },
     gameKillers: (state): Player[] => {
       return _.filter(state.gameSession?.players, (it) => 
+        it.is_killer && it.alive == true)
+    },
+    gameKillersDOA: (state): Player[] => {
+      return _.filter(state.gameSession?.players, (it) => 
         it.is_killer)
+    },
+    gameVictims: (state): Player[] => {
+      return _.filter(state.gameSession?.players, (it) => 
+        !it.is_killer && it.alive == true )
     },
     firstTime: (state): boolean => {
       return state.gameSession?.players?.filter(x => x.hash === state.hash).length == 0;
@@ -73,6 +87,13 @@ export const useStore = defineStore('store', {
     },
     async loadCampaing() {
       this.campaing = await fetchCampaing(this.gameSession.id_campaign);
+      if(!this.campaing.investigations || _.isEmpty(this.campaing.investigations)){
+        this.campaing.investigations = _fake_investigation;
+      }
+      // reset iVoted if user refresh
+      if(this.iVoted && !this.gameSession.is_accusing){
+        this.iVoted = false;
+      }
     },
     async startGame(){
       this.generateSuspect();

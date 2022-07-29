@@ -31,7 +31,6 @@ a:hover {
 body {
   margin: 0;
   min-width: 220px;
-  min-height: 100vh;
   color-scheme: dark;
   background-color:rgba(18, 18, 18, 0.87)
 }

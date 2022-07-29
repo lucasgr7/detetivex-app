@@ -5,7 +5,7 @@ export interface TypeGameSessionResponse {
   id_campaign: number
   player_count: number
   is_accusing: any
-  accusations: any
+  accusations: TypeAccusation[];
   investigations: any
   created_at: string
   updated_at: string
@@ -19,11 +19,19 @@ export interface TypePlayerSession{
   name: string;
   hash: string;
   is_killer: boolean;
-  alive?: any;
+  alive?: boolean;
   suspects_actions?: any;
   winner?: any;
   created_at: string;
   updated_at: string;
   attributes: any[]; //PENDENTE
   reasons: any[]; //PENDENTE
+}
+
+
+export interface TypeAccusation {
+  hash_accuser: string;
+  hash_accused: string;
+  votes: any[];
+  eliminated?: any;
 }

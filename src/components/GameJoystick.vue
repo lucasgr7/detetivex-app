@@ -4,7 +4,7 @@ const emits = defineEmits(['accuse', 'investigate', 'options'])
 </script>
 
 <template>
-  <div class="affix" position="button">
+  <div class="affix joystick" position="button">
     <el-row>
       <el-col class="accuse-button" :xs="10" >
         <el-button class="button" @click="emits('accuse')">
@@ -31,7 +31,7 @@ const emits = defineEmits(['accuse', 'investigate', 'options'])
   cursor: pointer;
   position: fixed;
   width: 100%;
-  bottom: 0;
+  bottom: -10px;
   background-color: #dedede;
   padding: 12px;
   .button{

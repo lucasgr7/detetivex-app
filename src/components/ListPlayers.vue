@@ -1,22 +1,50 @@
 <script lang="ts" setup>
 import _ from 'lodash';
-import { computed } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useStore } from '../store/appStore';
 import { Player } from '../types/api';
 
 const store = useStore();
+const multipleSelect = ref([] as Player[]);
 
 function handlePlayerCardClick(card: Player){
   if(!props.selection) return;
-  props.players.forEach((player: Player) => {
-    player.selected = false;
-  });
+  
+  if(!props.maxSelection){
+    if(card.selected){
+      card.selected = false;
+      emits('selected', null);
+      return;
+    }
+    props.players?.forEach((player: Player) => {
+      player.selected = false;
+    });
+    emits('selected', card);
+  }else{
+    if(card.selected){
+      card.selected = false;
+      _.remove(multipleSelect.value, (x) => x.id === card.id)
+      emits('selected', multipleSelect.value);
+      return;
+    }
+    else if(multipleSelect.value.length >= props.maxSelection){
+      multipleSelect.value[0].selected = false;
+      multipleSelect.value.shift();
+    }
+    multipleSelect.value.push(card);
+    emits('selected', multipleSelect.value);
+  }
   card.selected = true;
-  emits('selected', card);
 }
-const props = defineProps(['players', 'columns', 'hideHeader', 'fontSize', 'selection']);
-const emits = defineEmits(['selected'])
 
+const props = defineProps(['players', 'columns', 'hideHeader', 'fontSize', 'selection', 'maxSelection']);
+const emits = defineEmits(['selected'])
+onMounted(() => {
+  if(props.players?.length > 0){
+    props.players?.forEach(x => x.selected = false);
+
+  }
+})
 </script>
 <template>
   <el-card id="match">
@@ -38,7 +66,7 @@ const emits = defineEmits(['selected'])
       <el-col class="player-col" v-for="(player, i ) of props.players" :key="i"
         :xs="Math.ceil(props.columns / store.gameSession?.player_count)">
         <div 
-          :class="{'hightlight': player.highlight, 'selected': player.selected}" 
+          :class="{'hightlight': player.highlight, 'selected': player.selected, 'dead': !player.alive}" 
           :style="{'fontSize': props.fontSize + 'px'}" 
           class="player-card"
           @click="handlePlayerCardClick(player)">
@@ -80,6 +108,12 @@ const emits = defineEmits(['selected'])
       border-color: #b60000;
       box-shadow: 0px 0px 12px rgba(255, 0, 0, 0.72);
       background-color: #b60000;
+    }
+    &.dead{
+      color: rgb(70, 70, 70);
+      border-color: #220000;
+      box-shadow: 0px 0px 12px rgba(58, 1, 1, 0.72);
+      background-color: #300000;
     }
   }
 }

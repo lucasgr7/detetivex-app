@@ -9,11 +9,17 @@ import GameJoystick from './GameJoystick.vue';
 import Narrative from './Narrative.vue';
 import AccusationScreen from './AccusationScreen.vue';
 import _ from 'lodash';
+import InvestigateScreen from './InvestigateScreen.vue';
+import VoteAccusationScreen from './VoteAccusationScreen.vue';
+import DeathScreen from './DeathScreen.vue';
+import EndGame from './EndGame.vue';
 
 const store = useStore();
 const isBusy = ref(false);
 const playerName = ref('');
 const showAccusation = ref(false);
+const showInvestigation = ref(false);
+const wasAccusing = ref(false);
 
 
 const players = computed(() => {
@@ -35,7 +41,14 @@ watch(() => store.gameSession.players, () => {
 
 // computed variables
 const someoneStartedAccusation = computed(() => {
-  return store.gameSession.is_accusing;
+  const isAccusing = store.gameSession.is_accusing;
+  if(isAccusing){
+    wasAccusing.value = true;
+  }
+  if(!isAccusing && wasAccusing.value){
+    store.iVoted = false;
+  }
+  return isAccusing;
 });
 const isGameReady = computed(() => {
   const isGameReady = store.gameSession.player_count === store.gameSession?.players.length;
@@ -44,11 +57,24 @@ const isGameReady = computed(() => {
   }
   return isGameReady;
 })
+const isAlive = computed(() => {
+  return store.myPlayer?.alive ?? true;
+})
+const isGameFinished = computed(() => {
+  // quantidade de assassinos == vítimas
+  if(store.gameKillers?.length === store.gameVictims?.length){
+    return true;
+  }
+  if(store.gameKillers?.length === 0){
+    return true;
+  }
+  return false;
+})
 
 // refresh page data
 setInterval(async () => {
   if(!store) return;
-  if(store.gameSession?.is_accusing || isBusy.value) return;
+  if(isBusy.value || showInvestigation.value || isAlive) return;
   await store.refreshGameSession();
   console.log('refresh game');
 }, 10000)
@@ -60,11 +86,16 @@ function handleSendUserName(){
 }
 function startAccusation(){
   showAccusation.value = true;
-  store.gameSession.is_accusing = true;
 }
 function endAccusation(){
   showAccusation.value = false;
   store.gameSession.is_accusing = false;
+}
+function startinvestigation(){
+  showInvestigation.value = true;
+}
+function endInvestigation(){
+  showInvestigation.value = false;
 }
 
 onMounted(async () => {
@@ -110,11 +141,19 @@ onMounted(async () => {
     </el-card>
   </div>
   <GameJoystick 
-    @accuse="startAccusation"></GameJoystick>
+    @accuse="startAccusation"
+    @investigate="startinvestigation"></GameJoystick>
   <AccusationScreen 
-    :showAccusation="showAccusation || someoneStartedAccusation"
+    :showAccusation="showAccusation"
     @close="endAccusation"></AccusationScreen>
-  <el-row style="height: 300px"></el-row>
+  <InvestigateScreen
+    :show-investigation="showInvestigation"
+    @close="endInvestigation">
+    </InvestigateScreen>
+  <VoteAccusationScreen :visible="someoneStartedAccusation"></VoteAccusationScreen>
+  <DeathScreen :visible="!isAlive"></DeathScreen>
+  <EndGame :visible="isGameFinished"></EndGame>
+  <el-row style="height: 100px"></el-row>
 </div>
 </template>
 

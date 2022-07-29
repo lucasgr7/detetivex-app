@@ -30,20 +30,6 @@ export interface Accusation {
   eliminated: boolean;
 }
 
-export interface Investigation {
-  investigationId: number;
-  players: string[];
-  whoWasKilled: string;
-}
-
-export interface TypeGameSession {
-  CampaingId: number;
-  id: number;
-  players: Player[];
-  isAccusing: boolean;
-  accusations: Accusation[];
-  investigations: Investigation[];
-}
 
 // API VERSIONS - KENDÃO
 export interface TypeCreateCampaingResponse {

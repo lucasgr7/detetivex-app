@@ -22,6 +22,7 @@ export interface Investigation {
   name: string;
   risk: number;
   results: Results;
+  selected?: boolean;
 }
 
 export interface TypeCampaing {
