@@ -6,7 +6,7 @@ import { TypeGameSessionResponse } from "../types/game";
 import { TypeGeneric } from "../types/generics";
 import { TypeCreateGameSession } from "../types/post";
 
-const api = 'https://cors-anywhere.herokuapp.com/http://kg-azevedo.ml/api/detetivex'
+const api = 'http://kg-azevedo.ml/api/detetivex'
 
 export async function fetchAttributes(): Promise<TypePlayerAttribute[]> {
   const response = await fetch(`${api}/attributes`);
