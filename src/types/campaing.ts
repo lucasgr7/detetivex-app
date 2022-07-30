@@ -38,3 +38,8 @@ export interface TypeCampaing {
   created_at: string;
   updated_at: string;
 }
+
+export interface TypeSuspect {
+  who: any;
+  details: any;
+}

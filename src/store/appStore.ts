@@ -6,7 +6,7 @@ import type { TypeGameSessionResponse } from "../types/game"
 
 import { fetchAllCampaings, fetchAttributes, fetchCampaing, fetchGameSession, genericsController, postPlayerIntoGame, postStartAccusation } from "../api/scripts"
 import _ from "lodash"
-import { TypeCampaing } from "../types/campaing"
+import { TypeCampaing, TypeSuspect } from "../types/campaing"
 import { _fake_investigation } from "../mocks/campaing"
 import { TypeContent } from "../types/generics"
 
@@ -17,7 +17,7 @@ export const useStore = defineStore('store', {
       hash: useLocalStorage('hash', generateHash()),
       attributes: useLocalStorage('attributes', [] as TypePlayerAttribute[]),
       campaing: useLocalStorage('campaing', {} as TypeCampaing),
-      suspect: useLocalStorage('suspect', {}),
+      suspect: useLocalStorage('suspect', {} as TypeSuspect),
       myAttributes: useLocalStorage('myAttributes', [] as TypePlayerAttribute[]),
       iVoted: useLocalStorage('iVoted', false),
       campaings: useLocalStorage('campaings', [] as TypeCampaing[]),
@@ -80,7 +80,7 @@ export const useStore = defineStore('store', {
     },
     clearMemory() {
       this.gameSession = {} as TypeGameSessionResponse;
-      this.suspect = {};
+      this.suspect = {} as TypeSuspect;
       this.campaing = {} as TypeCampaing;
       this.myAttributes = [] as TypePlayerAttribute[];
       this.gameHasStarted = false;
@@ -127,7 +127,7 @@ export const useStore = defineStore('store', {
         this.campaing.investigations = _fake_investigation;
       }
       // reset iVoted if user refresh
-      if(this.iVoted && !this.isReallyAccusing){
+      if(this.iVoted && !this.gameSession.is_accusing){
         this.iVoted = false;
       }
     },
@@ -162,7 +162,8 @@ export const useStore = defineStore('store', {
           }
         }else{
           this.suspect = {
-            who: null
+            who: null,
+            details: null,
           }
         }
       }

@@ -9,7 +9,8 @@ import { onMounted } from "vue";
 const store = useStore();
 
 const params = new URLSearchParams(window.location.search);
-const idGameSession = parseInt(params.get("id")?.toString() ?? 0);
+let paramGame = params.get("id") ?? '0';
+const idGameSession = parseInt(paramGame);
 
 onMounted(async() => {
   store.loadAllCampaings();

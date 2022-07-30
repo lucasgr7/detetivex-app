@@ -1,7 +1,8 @@
 import { defaultWindow } from "@vueuse/core";
 import { dealWithError } from "../helpers/functions";
-import { Player, TypeCreateCampaingResponse, TypeGameSessionResponse, TypePlayerAttribute } from "../types/api";
+import { Player, TypeCreateCampaingResponse, TypePlayerAttribute } from "../types/api";
 import { TypeCampaing } from "../types/campaing";
+import { TypeGameSessionResponse } from "../types/game";
 import { TypeGeneric } from "../types/generics";
 import { TypeCreateGameSession } from "../types/post";
 
@@ -111,7 +112,7 @@ export async function postAccusation(hash: string, id_game_session: number, valu
   }
 }
 
-export async function postInvestigation(id_investigation: number, players: Player[], idGameSession: number): Promise<void> {
+export async function postInvestigation(id_investigation: number, players: string[], idGameSession: number): Promise<void> {
   try {
     const response = await fetch(`${api}/sessions/${idGameSession}/investigations`, {
       method: 'POST',

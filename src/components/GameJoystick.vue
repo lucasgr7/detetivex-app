@@ -45,8 +45,5 @@ const emits = defineEmits(['accuse', 'investigate', 'options']);
     height: 100%;
   }
 
-  .separator {
-
-  }
 }
 </style>
