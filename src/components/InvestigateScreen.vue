@@ -57,6 +57,7 @@ async function handleConfirm() {
     }
     playersSelected.value.push(store.myPlayer);
     await postInvestigation(scenarioSelected.value.id, playersSelected.value.map(x => x.hash), store.gameSession.id);
+    store.addLastInvestigator();
     handleAusent();
   }
 }

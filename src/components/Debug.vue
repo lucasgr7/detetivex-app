@@ -27,9 +27,6 @@ const store = useStore();
     </el-tag>
   </el-row>
   <el-row>
-    <el-button @click="store.setGameSession({})">
-      New Game
-    </el-button>
     <el-button @click="clearSuspiscious">
       Novos Suspeitos
     </el-button>

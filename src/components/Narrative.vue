@@ -4,13 +4,39 @@ import { useStore } from '../store/appStore';
 
 const visible = ref(true);
 const buttonHideLabel = computed(() => {
-  if(visible.value){
+  if (visible.value) {
     return 'Ocultar'
   }
   return 'Mostrar'
 })
 const store = useStore();
+const events = computed(() => {
+  const accusations = store.gameSession?.accusations.map(acc => {
+    const accuser = store.gameSession.players.filter(p => p.hash === acc.hash_accuser)[0].name;
+    const accused = store.gameSession.players.filter(p => p.hash === acc.hash_accused)[0].name;
+    let hasDeath = '';
+    if (acc.eliminated) {
+      hasDeath = `, ${accused} está morto`;
+    }
+    return `${accuser} acusou ${accused}` + hasDeath;
+  });
+  const investigations = store.gameSession?.investigations.map(invest => {
+    return `${invest.players?.map(hash => {
+      return store.gameSession.players.filter(y => y.hash === hash)[0].name;
+    }).join(', ')} Foram investigar`
+  });
 
+  const assassinations = store.gameSession.players.filter(player => {
+    const deaths = [];
+    const accusatedPlayers = store.gameSession.accusations.filter(acc => acc.eliminated)
+      .map(acc => acc.hash_accused);
+    if(!player.alive && !accusatedPlayers.includes(player.hash)){
+      return player;
+    }
+  }).map(p => `${p.name} foi assassinado`);
+
+  return [...accusations, ...investigations, ...assassinations];
+})
 </script>
 <template>
   <el-card class="narrative">
@@ -20,26 +46,32 @@ const store = useStore();
           Narrativa
         </el-col>
         <el-col :xs="8" style="color: white" @click="visible = !visible">
-            {{buttonHideLabel}}
+          {{ buttonHideLabel }}
         </el-col>
       </el-row>
     </template>
     <div v-if="store.myPlayer && visible">
-    <el-row class="narrative-text">
-      {{store.campaing?.narrative}}
-    </el-row>
-    <div v-if="store.suspect.who != null">
-      <hr/>
-      <el-row >
-        <label>Sua suspeita:</label>
-        <span class="suspect-detail">
-          <span class="name">
-            {{store.suspect?.who.name}}
-          </span>
-          {{store.suspect?.details}}
-        </span>
+      <el-row class="narrative-text">
+        {{ store.campaing?.narrative }}
       </el-row>
-    </div>
+      <div v-if="store.suspect?.who != null">
+        <hr />
+        <el-row>
+          <label>Sua suspeita:</label>
+          <span class="suspect-detail">
+            <span class="name">
+              {{ store.suspect?.who.name }}
+            </span>
+            {{ store.suspect?.details }}
+          </span>
+        </el-row>
+      </div>
+      <div v-if="events">
+        <hr/>
+        <el-row v-for="(event, i) of events" :key="i">
+          {{ event}}
+        </el-row>
+      </div>
     </div>
     <div v-else>
       ...
@@ -56,7 +88,7 @@ const store = useStore();
   border-color: #ffffff;
   box-shadow: 0px 0px 12px rgba(155, 155, 155, 0.72);
 
-  .narrative-text{
+  .narrative-text {
     line-height: 20px;
   }
 
@@ -71,9 +103,11 @@ const store = useStore();
   .el-row {
     margin-top: 10px;
   }
-  .suspect-detail{
+
+  .suspect-detail {
     margin-left: 5px;
-    .name{
+
+    .name {
       color: rgb(255, 141, 141);
     }
   }

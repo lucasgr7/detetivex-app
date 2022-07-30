@@ -4,10 +4,11 @@ import { chance, generateHash } from "../helpers/functions"
 import type { Player, TypeCreateCampaingResponse,  TypePlayerAttribute } from '../types/api'
 import type { TypeGameSessionResponse } from "../types/game"
 
-import { fetchAllCampaings, fetchAttributes, fetchCampaing, fetchGameSession, postPlayerIntoGame, postStartAccusation } from "../api/scripts"
+import { fetchAllCampaings, fetchAttributes, fetchCampaing, fetchGameSession, genericsController, postPlayerIntoGame, postStartAccusation } from "../api/scripts"
 import _ from "lodash"
 import { TypeCampaing } from "../types/campaing"
 import { _fake_investigation } from "../mocks/campaing"
+import { TypeContent } from "../types/generics"
 
 export const useStore = defineStore('store', {
   state: () => {
@@ -21,6 +22,8 @@ export const useStore = defineStore('store', {
       iVoted: useLocalStorage('iVoted', false),
       campaings: useLocalStorage('campaings', [] as TypeCampaing[]),
       gameHasStarted: useLocalStorage('gameHasStarted', false),
+      isDebug: false,
+      db: useLocalStorage('db', {} as TypeContent),
     }
   },
   getters: {
@@ -55,15 +58,17 @@ export const useStore = defineStore('store', {
         && !_.isEmpty(state.gameSession)
         && state.gameSession?.player_count > 0;
     },
-    isReallyAccusing: (state): boolean => {
-      // if(state.gameSession?.accusations?.length > 0){
-      //   const countPlayersActive = state.gameSession.players?.filter(x => x.alive == true).length;
-      //   const lastAccusationActive = state.gameSession.accusations[state.gameSession.accusations.length - 1];
-      //   const isLastActive = lastAccusationActive.votes.length >= countPlayersActive && lastAccusationActive.eliminated != null;
-      //   return state.gameSession.is_accusing && isLastActive;
-      // }else{
-        return state.gameSession.is_accusing
-      // }
+    lastPlayerInvestigate: (state): boolean => {
+      if( state.db?.investigators?.length === 0){
+        return false;
+      }
+      if(_.isEmpty(state.db?.investigators)) return false;
+      const lastInvestigator = state.db?.investigators[state.db?.investigators?.length - 1];
+      const hasMyPlayer = state.gameSession?.players?.filter(x => x.hash === state.hash);
+      if(hasMyPlayer.length === 0) {
+        return false;
+      }
+      return state.gameSession?.players?.filter(x => x.hash === state.hash)[0].hash === lastInvestigator;
     }
   },
   actions: {
@@ -92,11 +97,15 @@ export const useStore = defineStore('store', {
     },
     async refreshGameSession(){
       const updateVersion = await fetchGameSession(this.gameSession.id);
+      const generics = await genericsController.get(this.gameSession.id);
       if(!_.isEqual(updateVersion, this.gameSession)){
         this.gameSession = updateVersion;
         this.loadCampaing();
       }else{
         console.log('Sem atualização')
+      }
+      if(!_.isEqual(this.db, generics)){
+        this.db = generics.content;
       }
     },
     async insertPlayer(name: string, hash?: string){
@@ -135,9 +144,9 @@ export const useStore = defineStore('store', {
       if(!this.campaing){
         await this.loadCampaing();
       }
-      debugger;
+      
       if(_.isEmpty(this.suspect) && this.myPlayer && !this.myPlayer?.is_killer){
-        debugger;
+        
         if(chance(FROM_HUNDRED) < CHANCE_SUSPECT_SOMEONE){ // SUSPEITA?
           if(chance(FROM_HUNDRED) < SUSPECT_REAL_KILLER){ // 33% suspect a real killer
             this.suspect = {
@@ -186,6 +195,15 @@ export const useStore = defineStore('store', {
           this.myAttributes = _.union(attributes);
         }
       }
+    },
+    async addLastInvestigator() {
+      if(!this.db || !this.db?.investigators){
+        this.db = {
+          investigators: []
+        }
+      }
+      this.db.investigators.push(this.myPlayer.hash)
+      genericsController.sync(this.gameSession.id, this.db);
     }
   }
 })

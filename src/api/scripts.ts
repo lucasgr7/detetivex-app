@@ -1,17 +1,19 @@
+import { defaultWindow } from "@vueuse/core";
 import { dealWithError } from "../helpers/functions";
 import { Player, TypeCreateCampaingResponse, TypeGameSessionResponse, TypePlayerAttribute } from "../types/api";
 import { TypeCampaing } from "../types/campaing";
+import { TypeGeneric } from "../types/generics";
 import { TypeCreateGameSession } from "../types/post";
 
 const api = 'http://kg-azevedo.ml/api/detetivex'
 
-export async function fetchAttributes(): Promise<TypePlayerAttribute[]>{
+export async function fetchAttributes(): Promise<TypePlayerAttribute[]> {
   const response = await fetch(`${api}/attributes`);
-  return response.json().then(r => r as TypePlayerAttribute[]) ;
+  return response.json().then(r => r as TypePlayerAttribute[]);
 }
 
-export async function createGameSession(body: TypeCreateGameSession): Promise<TypeCreateCampaingResponse>{
-  try{
+export async function createGameSession(body: TypeCreateGameSession): Promise<TypeCreateCampaingResponse> {
+  try {
     const response = await fetch(`${api}/sessions`, {
       method: 'POST',
       headers: {
@@ -19,12 +21,12 @@ export async function createGameSession(body: TypeCreateGameSession): Promise<Ty
       },
       body: JSON.stringify(body)
     });
-    if(!response.ok){
+    if (!response.ok) {
       throw response.statusText;
     }
     return (await response.json()) as TypeCreateCampaingResponse;
   }
-  catch(exc: any){
+  catch (exc: any) {
     dealWithError(exc);
   }
   return {} as TypeCreateCampaingResponse;
@@ -47,7 +49,7 @@ export async function fetchAllCampaings(): Promise<TypeCampaing[]> {
 }
 
 export async function postPlayerIntoGame(idGameSession: number, name: string, hash: string): Promise<void> {
-  try{
+  try {
     const response = await fetch(`${api}/sessions/${idGameSession}/players`, {
       method: 'POST',
       headers: {
@@ -58,17 +60,17 @@ export async function postPlayerIntoGame(idGameSession: number, name: string, ha
         hash
       })
     });
-    if(!response.ok){
+    if (!response.ok) {
       throw response.statusText ?? response;
     }
   }
-  catch(exc: any){
+  catch (exc: any) {
     dealWithError(exc);
   }
 }
 
 export async function postStartAccusation(user_hash: string, accussed_hash: string, id_game_session: number): Promise<void> {
-  try{
+  try {
     const response = await fetch(`${api}/sessions/${id_game_session}/accusations`, {
       method: 'POST',
       headers: {
@@ -79,17 +81,17 @@ export async function postStartAccusation(user_hash: string, accussed_hash: stri
         hash_accused: accussed_hash
       })
     });
-    if(!response.ok){
+    if (!response.ok) {
       throw response.statusText ?? response;
     }
   }
-  catch(exc: any){
+  catch (exc: any) {
     dealWithError(exc);
   }
 }
 
 export async function postAccusation(hash: string, id_game_session: number, value: boolean): Promise<void> {
-  try{
+  try {
     const response = await fetch(`${api}/sessions/${id_game_session}/accusations/votes`, {
       method: 'POST',
       headers: {
@@ -100,17 +102,17 @@ export async function postAccusation(hash: string, id_game_session: number, valu
         value
       })
     });
-    if(!response.ok){
+    if (!response.ok) {
       throw response.statusText ?? response;
     }
   }
-  catch(exc: any){
+  catch (exc: any) {
     dealWithError(exc);
   }
 }
 
 export async function postInvestigation(id_investigation: number, players: Player[], idGameSession: number): Promise<void> {
-  try{
+  try {
     const response = await fetch(`${api}/sessions/${idGameSession}/investigations`, {
       method: 'POST',
       headers: {
@@ -121,11 +123,75 @@ export async function postInvestigation(id_investigation: number, players: Playe
         players
       })
     });
-    if(!response.ok){
+    if (!response.ok) {
       throw response.statusText ?? response;
     }
   }
-  catch(exc: any){
+  catch (exc: any) {
     dealWithError(exc);
+  }
+}
+
+export const genericsController = {
+  get: async (gameSessionId: number): Promise<TypeGeneric> => {
+    let response = {} as Response;
+    try {
+      response = await fetch(`${api}/generics/${gameSessionId}`);
+      if (!response.ok) {
+        if (response.status === 404) { //generic not generated yet
+          return await genericsController.create(gameSessionId);
+        }
+      }
+      return response.json().then(r => r as TypeGeneric);
+    } catch (exc: any) {
+      dealWithError(exc);
+    }
+    return {} as TypeGeneric
+  },
+  create: async (gamesSessionId: number): Promise<TypeGeneric> => {
+    try {
+      const requestPayload = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json;charset=utf-8'
+        },
+        body: JSON.stringify({})
+      };
+      let body = {} as TypeGeneric;
+      let limitTries = 10;
+      while (body.id !== gamesSessionId || limitTries > 0) {
+        const response = await fetch(`${api}/generics`, requestPayload);
+        if (!response.ok) {
+          throw response.statusText ?? response;
+        }
+        await response.json().then(r => body = r as TypeGeneric);
+        limitTries--;
+      }
+      return body;
+    }
+    catch (exc: any) {
+      dealWithError(exc);
+    }
+    return {} as TypeGeneric;
+  },
+  sync: async (gameSessionId: number, content: any) => {
+    try {
+      const requestPayload = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json;charset=utf-8'
+        },
+        body: JSON.stringify({ content })
+      };
+      debugger;
+      const response = await fetch(`${api}/generics`, requestPayload);
+      if (!response.ok) {
+        throw response.statusText ?? response;
+      }
+    }
+    catch (exc: any) {
+      dealWithError(exc);
+    }
+    return {} as TypeGeneric;
   }
 }

@@ -38,7 +38,7 @@ watch(() => store.firstTime, () => {
 
 // computed variables
 const someoneStartedAccusation = computed(() => {
-  const isAccusing = store.isReallyAccusing;
+  const isAccusing = store.gameSession.is_accusing ?? false;
   if(isAccusing){
     wasAccusing.value = true;
   }
@@ -140,7 +140,7 @@ onMounted(async () => {
         </span>
     </el-row>
   </el-dialog>
-  <Debug></Debug>
+  <Debug v-show="store.isDebug"></Debug>
   <ListPlayers :players="players" 
     :columns="48"></ListPlayers>
   <div v-if="isGameReady">
@@ -166,7 +166,7 @@ onMounted(async () => {
   <VoteAccusationScreen :visible="someoneStartedAccusation"></VoteAccusationScreen>
   <DeathScreen :visible="!isAlive"></DeathScreen>
   <EndGame :visible="isGameFinished"></EndGame>
-  <Options :visible="isOptionsVisible"></Options>
+  <Options @close="isOptionsVisible = false" :visible="isOptionsVisible"></Options>
   <el-row style="height: 100px"></el-row>
 </div>
 </template>
