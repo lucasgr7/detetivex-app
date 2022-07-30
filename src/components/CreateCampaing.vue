@@ -30,7 +30,7 @@ async function handleChoosePlayerCount(playerCount: number){
   <el-row>
 
   </el-row>
-  <h2>Selecione a Campanha</h2>
+  <h2>Selecione a Campanha </h2>
   <el-row>
     <el-col :xs="24">
       <el-card 
