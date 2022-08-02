@@ -1,27 +1,32 @@
 <script lang="ts" setup>
-import ListPlayers from './ListPlayers.vue';
-import Debug from './Debug.vue';
-import Profile from './Profile.vue';
+import ListPlayers from '../components/ListPlayers.vue';
+import Debug from '../components/Debug.vue';
+import Profile from '../components/Profile.vue';
 import { computed, onMounted, ref, watch } from 'vue';
 import { useStore } from '../store/appStore';
 import { ElDialog, ElNotification } from 'element-plus';
-import GameJoystick from './GameJoystick.vue';
-import Narrative from './Narrative.vue';
-import AccusationScreen from './AccusationScreen.vue';
+import GameJoystick from '../components/GameJoystick.vue';
+import Narrative from '../components/Narrative.vue';
+import AccusationScreen from '../components/AccusationScreen.vue';
 import _ from 'lodash';
-import InvestigateScreen from './InvestigateScreen.vue';
-import VoteAccusationScreen from './VoteAccusationScreen.vue';
-import DeathScreen from './DeathScreen.vue';
-import EndGame from './EndGame.vue';
-import Options from './Options.vue';
+import InvestigateScreen from '../components/InvestigateScreen.vue';
+import VoteAccusationScreen from '../components/VoteAccusationScreen.vue';
+import DeathScreen from '../components/DeathScreen.vue';
+import EndGame from '../components/EndGame.vue';
+import Options from '../components/Options.vue';
+import { useRoute } from 'vue-router';
+import SelectAttributes from '../components/SelectAttributes.vue';
 
 const store = useStore();
+const route = useRoute();
 const isBusy = ref(false);
 const playerName = ref('');
 const showAccusation = ref(false);
 const showInvestigation = ref(false);
 const wasAccusing = ref(false);
 const isOptionsVisible = ref(false);
+const idGameSession = typeof(route.params?.id) === 'string' ? parseInt(route.params?.id) : parseInt(route.params?.id[0]);
+console.log(idGameSession);
 
 
 const players = computed(() => {
@@ -110,9 +115,21 @@ function showOptions(){
   isOptionsVisible.value = true;
 }
 
+
+
 onMounted(async () => {
+  store.loadAllCampaings();
+  store.loadAttributes();
   isBusy.value = store.firstTime;
-  await store.loadCampaing();
+  if(idGameSession != 0){
+    if(store.gameSession?.id != idGameSession){
+      store.clearMemory();
+    }
+    store.gameSession.id = idGameSession;
+    await store.refreshGameSession();
+  }else{
+    store.clearMemory();
+  }
 })
 </script>
 
@@ -152,6 +169,8 @@ onMounted(async () => {
     element-loading-text="Aguardando jogadores...">
     </el-card>
   </div>
+
+  <SelectAttributes></SelectAttributes>
   <GameJoystick 
     @accuse="startAccusation"
     @investigate="startinvestigation"

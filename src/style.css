@@ -1,6 +1,13 @@
 @font-face {
   font-family: UglyByte;
   src: url("assets/fonts/BebasNeue-Regular.ttf") format("opentype");
+}@font-face {
+  font-family: PressStart;
+  src: url("assets/fonts/press-start/PressStart2P-Regular.ttf") format("opentype");
+}
+@font-face {
+  font-family: Saira;
+  src: url("assets/fonts/saira/Saira/Saira-Regular.ttf") format("opentype");
 }
 :root {
   font-family: UglyByte, Inter, Avenir, Helvetica, Arial, sans-serif;

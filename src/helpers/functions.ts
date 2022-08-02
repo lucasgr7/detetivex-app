@@ -26,6 +26,11 @@ export function dealWithError(exc: any) {
   })
 }
 
+/**
+ * Results a random number from the ginen parameter as a limit
+ * @param limit the max limit to return
+ * @returns A random number from the ginen parameter
+ */
 export function chance(limit: number){
   const chance = Math.floor(Math.random() * limit)
   console.log(chance);

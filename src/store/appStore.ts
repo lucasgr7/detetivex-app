@@ -9,6 +9,7 @@ import _ from "lodash"
 import { TypeCampaing, TypeSuspect } from "../types/campaing"
 import { _fake_investigation } from "../mocks/campaing"
 import { TypeContent } from "../types/generics"
+import { __mock_attributes__ } from "../mocks/attributes"
 
 export const useStore = defineStore('store', {
   state: () => {
@@ -90,9 +91,6 @@ export const useStore = defineStore('store', {
     },
     async createSession(gameSession: TypeCreateCampaingResponse){
       this.gameSession = await fetchGameSession(gameSession.id);
-      const urlParams = new URLSearchParams(window.location.search);
-      urlParams.set('id', gameSession.id.toString());
-      window.location.search = urlParams.toString();
 
     },
     async refreshGameSession(){
@@ -116,7 +114,7 @@ export const useStore = defineStore('store', {
       console.log(`Estou entrando no jogo ${this.gameSession.id} ${name} - ${this.hash}`)
     },
     async loadAttributes() {
-      this.attributes = await fetchAttributes();
+      this.attributes = __mock_attributes__;
     },
     async loadAllCampaings(){
       this.campaings = await fetchAllCampaings();

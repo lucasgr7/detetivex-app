@@ -1,16 +1,17 @@
 <script lang="ts" setup>
 import _ from 'lodash';
 import { onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
 import { createGameSession } from '../api/scripts';
 import { useStore } from '../store/appStore';
 import { TypeCampaing } from '../types/campaing';
 
-const props = defineProps(['campaings']);
-const gameCampaings = props.campaings as TypeCampaing[];
+const store = useStore();
+const router = useRouter();
+const gameCampaings = store.campaings;
 
 const showIngputPlayerCount = ref(false);
 const selectedCampaing = ref({} as TypeCampaing);
-const store = useStore();
 
 async function handleCampaingClick(campaing: TypeCampaing){
   selectedCampaing.value = campaing;
@@ -22,7 +23,11 @@ async function handleChoosePlayerCount(playerCount: number){
     player_count: playerCount
   });
   store.createSession(response);
+  router.replace('/v0/' + store.gameSession.id)
 }
+onMounted(() => {
+  store.loadAllCampaings();
+})
 </script>
 <template>
 <div class="create-campaing">
