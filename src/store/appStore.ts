@@ -10,6 +10,7 @@ import { TypeCampaing, TypeSuspect } from "../types/campaing"
 import { _fake_investigation } from "../mocks/campaing"
 import { TypeContent } from "../types/generics"
 import { __mock_attributes__ } from "../mocks/attributes"
+import { useRouter } from "vue-router"
 
 export const useStore = defineStore('store', {
   state: () => {
@@ -75,9 +76,8 @@ export const useStore = defineStore('store', {
   actions: {
     exitGame() {
       this.clearMemory();
-      const urlParams = new URLSearchParams(window.location.search);
-      urlParams.delete('id');
-      window.location.search = urlParams.toString();
+      const router = useRouter();
+      router.replace("/");
     },
     clearMemory() {
       this.gameSession = {} as TypeGameSessionResponse;

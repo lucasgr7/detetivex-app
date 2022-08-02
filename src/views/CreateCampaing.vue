@@ -23,10 +23,11 @@ async function handleChoosePlayerCount(playerCount: number){
     player_count: playerCount
   });
   store.createSession(response);
-  router.replace('/v0/' + store.gameSession.id)
+  router.replace('/v0/' + response.id)
 }
 onMounted(() => {
   store.loadAllCampaings();
+  store.clearMemory();
 })
 </script>
 <template>
