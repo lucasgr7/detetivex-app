@@ -23,10 +23,10 @@ const isBusy = ref(false);
 const playerName = ref('');
 const showAccusation = ref(false);
 const showInvestigation = ref(false);
+const showSelectAttributes = ref(false);
 const wasAccusing = ref(false);
 const isOptionsVisible = ref(false);
 const idGameSession = typeof(route.params?.id) === 'string' ? parseInt(route.params?.id) : parseInt(route.params?.id[0]);
-console.log(idGameSession);
 
 
 const players = computed(() => {
@@ -114,14 +114,8 @@ function endInvestigation(){
 function showOptions(){
   isOptionsVisible.value = true;
 }
-
-
-
-onMounted(async () => {
-  store.loadAllCampaings();
-  store.loadAttributes();
-  isBusy.value = store.firstTime;
-  if(idGameSession != 0){
+async function handleValidateIdGame(){
+   if(idGameSession != 0){
     if(store.gameSession?.id != idGameSession){
       store.clearMemory();
     }
@@ -130,6 +124,19 @@ onMounted(async () => {
   }else{
     store.clearMemory();
   }
+}
+
+
+
+onMounted(async () => {
+  store.loadAllCampaings();
+  store.loadAttributes();
+  isBusy.value = store.firstTime;
+  await handleValidateIdGame();
+  if(store.firstTime){
+    showSelectAttributes.value = true;
+  }
+ 
 })
 </script>
 
@@ -170,7 +177,10 @@ onMounted(async () => {
     </el-card>
   </div>
 
-  <SelectAttributes></SelectAttributes>
+  <SelectAttributes 
+    :visible="showSelectAttributes"
+    @close="showSelectAttributes = false"
+  ></SelectAttributes>
   <GameJoystick 
     @accuse="startAccusation"
     @investigate="startinvestigation"

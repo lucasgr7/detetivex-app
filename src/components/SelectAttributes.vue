@@ -11,9 +11,9 @@ interface AttributeSelection extends TypePlayerAttribute {
 
 const store = useStore();
 const props = defineProps(['visible']);
+const emits = defineEmits(['close']);
 const limit = ref(4);
 const visible = ref(true);
-const emits = defineEmits(['close']);
 const attributes = ref([] as AttributeSelection[]);
 
 // animations
@@ -44,7 +44,8 @@ function handleSelectAttribte(item: AttributeSelection): void {
   item.selected = !item.selected;
 }
 function handleConfirm() {
-
+  store.setAttributes(attributes.value.filter(x => x.selected));
+  emits('close');
 }
 onMounted(() => {
   handleRandomize();
@@ -52,7 +53,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <el-dialog v-model="visible" 
+  <el-dialog v-model="props.visible" 
     title="Selecione suas características" 
     width="100%"
     @close="emits('close')"

@@ -195,6 +195,9 @@ export const useStore = defineStore('store', {
         }
       }
     },
+    setAttributes(attr: TypePlayerAttribute[]):void {
+      this.myAttributes = attr;
+    },
     async addLastInvestigator() {
       if(!this.db || !this.db?.investigators){
         this.db = {
