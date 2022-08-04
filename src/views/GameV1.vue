@@ -38,7 +38,7 @@ function handleTileMapClick(x: number, y: number) {
   margin: 0;
   // mobile fixed size
   width: 100%;
-  height: 100%;
+  height: 100% !important;
 
   background-image: linear-gradient(to bottom, #290c49 0%, #13215f 100%);
   // animated slowing brighintg up of the background

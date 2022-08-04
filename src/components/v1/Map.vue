@@ -114,8 +114,8 @@ onMounted(() => {
   font-size: 24px;
   .map-tile{
     padding: 12px;
-    width: 75px;
-    height: 75px;
+    width: 45px;
+    height: 45px;
     border: solid 2px #dedede;
     line-height: 24px;
   }

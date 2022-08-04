@@ -6,7 +6,7 @@
   <el-row justify="center">
     <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
       <!-- button to the next turn -->
-      <el-button type="primary" id="next-turn" @click="emits('next-turn')">
+      <el-button type="default" id="next-turn" @click="emits('next-turn')">
         <el-icon><Check /></el-icon>
       </el-button>
     </el-col>
@@ -38,7 +38,10 @@
   text-align: center;
   font-size: 24px;
   color: #fff;
-  background-color: #00bcd4;
+  background-color: #727272;
+  // 3d button style effect
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+
   
 }
 </style>
