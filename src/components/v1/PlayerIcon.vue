@@ -1,9 +1,16 @@
 <script lang="ts" setup>
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import PlayerInfo from "./PlayerInfo.vue";
 
-const props = defineProps(['player', 'isMyPlayer']);
+const props = defineProps(['player', 'isMyPlayer', 'style']);
 const showPlayerInfo = ref(false);
+
+const style = computed(() => {
+  return {
+    ...props.style,
+    'background-color': props.player.color
+  }
+})
 
 function handleClick() {
   console.log('show');
@@ -12,8 +19,8 @@ function handleClick() {
 </script>
 
 <template>
-  <span  
-    :style="{'background-color' : props.player.color}" 
+  <span 
+    :style="style"
     :class="{'my-player': props.isMyPlayer, 'player-turn': props.player.isTurn}"
     @click="handleClick"
     class="player-icon" >
@@ -28,11 +35,11 @@ function handleClick() {
   // player-icon class circle with spacing
   .player-icon{
     display: inline-block;
-    width: 44px;
-    height: 44px;
+    width: 24px;
+    height: 24px;
     border-radius: 20%;
-    margin-right: 10px;
-    line-height: 44px;
+    line-height: 24px;
+    font-size: 12px;
     cursor: pointer;
   }
   // glowing animated border for my player

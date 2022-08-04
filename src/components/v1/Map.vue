@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { TransitionPresets, useMouse, useTransition } from '@vueuse/core';
 import { computed, onMounted, ref } from 'vue';
 import type { TypeMap, TypeCell } from '../../types/gamev1.js';
 import PlayerIcon from './PlayerIcon.vue';
@@ -14,7 +15,6 @@ const map = ref({} as TypeMap);
 
 const TURN_HIDE_BODY = 1;
 const TURN_MOVE = 2;
-
 // computed
 const playersWithoutPosition = computed(() =>{
   return props.players.filter(player => player.position === null);
@@ -87,7 +87,7 @@ onMounted(() => {
     </el-col>
     <el-col :xs="16">
       <span class="player-icon"  v-for="(player, i) of playersWithoutPosition">
-        <PlayerIcon :player="player" :is-my-player="isMyPlayer(player.hash)" />
+        <PlayerIcon  :player="player" :is-my-player="isMyPlayer(player.hash)" />
       </span>
     </el-col>
   </el-row>
@@ -110,12 +110,12 @@ onMounted(() => {
 
 <style lang="scss">
 #map{
-  padding-top: 30px;
+  padding: 10px;
   font-size: 24px;
   .map-tile{
     padding: 12px;
-    width: 45px;
-    height: 45px;
+    width: 35px;
+    height: 35px;
     border: solid 2px #dedede;
     line-height: 24px;
   }

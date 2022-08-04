@@ -17,7 +17,7 @@ const itens = computed(() => {
 </script>
 
 <template>
-  <el-dialog v-model="props.visible" id="base-player-info" fullscreen title="Informações" :close-on-click-modal="false"
+  <el-dialog v-model="props.visible" id="base-player-info" fullscreen :close-on-click-modal="false"
     :close-on-press-escape="false">
     <el-main>
       <el-card id="player-info">
@@ -84,26 +84,14 @@ const itens = computed(() => {
     font-family: 'FontAwesome';
     // use the icon of a search to show the item is hidden
     font-size: 1.5em;
+    z-index: 9999 !important;
   }
 
   margin-bottom: 20px;
   font-size: 2.0em;
   border: solid 4px #00bcd4;
-  animation: flash 5s infinite;
+  border-color: #473f3f;
 
-  @keyframes flash {
-    0% {
-      border-color: #ffffff;
-    }
-
-    50% {
-      border-color: #000000;
-    }
-
-    100% {
-      border-color: #ffffff;
-    }
-  }
 
   span {
     font-size: 2.0em;
