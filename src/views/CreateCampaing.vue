@@ -3,27 +3,37 @@ import _ from 'lodash';
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { createGameSession } from '../api/scripts';
+import { __CAMPAING_V1_HOUSE } from '../mocks/campaings_v1';
 import { useStore } from '../store/appStore';
+import { useStoreV1 } from '../store/appV1Store';
 import { TypeCampaing } from '../types/campaing';
 
 const store = useStore();
+const storeV1 = useStoreV1();
 const router = useRouter();
 const gameCampaings = store.campaings;
+const v1Games = [__CAMPAING_V1_HOUSE];
+const activeName = ref('v1');
 
-const showIngputPlayerCount = ref(false);
-const selectedCampaing = ref({} as TypeCampaing);
+const showInputPlayerCount = ref(false);
+const selectedCampaing = ref({} as any);
 
 async function handleCampaingClick(campaing: TypeCampaing){
   selectedCampaing.value = campaing;
-  showIngputPlayerCount.value = true;
+  showInputPlayerCount.value = true;
 }
 async function handleChoosePlayerCount(playerCount: number){
-  const response = await createGameSession({
-    id_campaign: selectedCampaing.value.id,
-    player_count: playerCount
-  });
-  store.createSession(response);
-  router.replace('/v0/' + response.id)
+  if(selectedCampaing.value.type === 1){
+    const gameId = await storeV1.createGame(selectedCampaing.value.id, playerCount);
+    router.replace('v1/'+ gameId);
+  }else{
+    const response = await createGameSession({
+      id_campaign: selectedCampaing.value.id,
+      player_count: playerCount
+    });
+    store.createSession(response);
+    router.replace('/v0/' + response.id)
+  }
 }
 onMounted(() => {
   store.loadAllCampaings();
@@ -34,9 +44,12 @@ onMounted(() => {
 <div class="create-campaing">
   <h1>DetetiveX</h1>
   <el-row>
-
   </el-row>
+  
   <h2>Selecione a Campanha </h2>
+  
+  <el-tabs v-model="activeName" class="demo-tabs" >
+    <el-tab-pane label="Modo Vítimas" name="v0">
   <el-row>
     <el-col :xs="24">
       <el-card 
@@ -49,8 +62,20 @@ onMounted(() => {
       </el-row>
       </el-card>
     </el-col>
-  </el-row>
-  <el-dialog v-model="showIngputPlayerCount"  class="input-player"
+  </el-row></el-tab-pane>
+    <el-tab-pane label="Modo Detetives" name="v1">
+      <el-card 
+        @click="handleCampaingClick(c)"
+        class="icon-campaing" 
+        v-for="(c, i) of v1Games" :key="i" 
+        :style="{'background': `url(${c.url_image})`, 'background-size': 'cover'}">
+      <el-row alignment="middle" >
+        <h3>{{c.name}}</h3>
+      </el-row>
+      </el-card>
+    </el-tab-pane>
+  </el-tabs>
+  <el-dialog v-model="showInputPlayerCount"  class="input-player"
     title="Quantos jogadores irão jogar?" width="95%" center>
     <h2><b>Campanha:</b> {{selectedCampaing.name}}</h2>
       <el-row justyfi="right">

@@ -160,7 +160,7 @@ export const genericsController = {
       };
       let body = {} as TypeGeneric;
       let limitTries = 10;
-      while (body.id !== gamesSessionId || limitTries > 0) {
+      while (body.id < gamesSessionId || limitTries > 0) {
         const response = await fetch(`${api}/generics`, requestPayload);
         if (!response.ok) {
           throw response.statusText ?? response;
@@ -178,14 +178,13 @@ export const genericsController = {
   sync: async (gameSessionId: number, content: any) => {
     try {
       const requestPayload = {
-        method: 'POST',
+        method: 'PUT',
         headers: {
           'Content-Type': 'application/json;charset=utf-8'
         },
         body: JSON.stringify({ content })
       };
-      debugger;
-      const response = await fetch(`${api}/generics`, requestPayload);
+      const response = await fetch(`${api}/generics/${gameSessionId}`, requestPayload);
       if (!response.ok) {
         throw response.statusText ?? response;
       }

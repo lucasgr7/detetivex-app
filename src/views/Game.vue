@@ -166,6 +166,9 @@ onMounted(async () => {
   </el-dialog>
   <Debug v-show="store.isDebug"></Debug>
   <ListPlayers :players="players" 
+    :game-session-id="store.gameSession.id"
+    :total-players="store.gameSession.player_count"
+    :active-players="store.gameSession.players?.length"
     :columns="48"></ListPlayers>
   <div v-if="isGameReady">
     <Profile></Profile>

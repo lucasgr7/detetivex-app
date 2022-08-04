@@ -2,10 +2,17 @@
 import { ElNotification } from 'element-plus';
 import _ from 'lodash';
 import { computed, onMounted, ref } from 'vue';
-import { useStore } from '../store/appStore';
 import { Player } from '../types/api';
 
-const store = useStore();
+const props = defineProps(['players',
+  'columns',
+  'hideHeader',
+  'fontSize',
+  'selection',
+  'maxSelection',
+  'gameSessionId',
+  'totalPlayers',
+  'activePlayers']);
 const multipleSelect = ref([] as Player[]);
 
 function handlePlayerCardClick(card: Player){
@@ -45,7 +52,6 @@ function handlePlayerCardClick(card: Player){
   card.selected = true;
 }
 
-const props = defineProps(['players', 'columns', 'hideHeader', 'fontSize', 'selection', 'maxSelection']);
 const emits = defineEmits(['selected'])
 onMounted(() => {
   if(props.players?.length > 0){
@@ -60,19 +66,19 @@ onMounted(() => {
       <el-row class="title"  v-show="!hideHeader">
         <el-col :xs="12">
         <el-row>
-          partida - {{store.gameSession.id}}
+          partida - {{props.gameSessionId}}
         </el-row>
         </el-col>
         <el-col :xs="12">
           <el-row justify="end">
-            {{store.gameSession.players?.length}}/{{store.gameSession.player_count}}
+            {{props.activePlayers}}/{{props.totalPlayers}}
           </el-row>
         </el-col>
       </el-row>
     </template>
     <el-row :gutter="20">
       <el-col class="player-col" v-for="(player, i ) of props.players" :key="i"
-        :xs="Math.ceil(props.columns / store.gameSession?.player_count)">
+        :xs="Math.ceil(props.columns / props.totalPlayers)">
         <div 
           :class="{'hightlight': player.highlight, 'selected': player.selected, 'dead': !player.alive}" 
           :style="{'fontSize': props.fontSize + 'px'}" 

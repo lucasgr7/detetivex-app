@@ -103,7 +103,14 @@ onMounted(() => {;
           {{ item.name }}
         </el-tag>
       </el-row>
-      <ListPlayers @selected="handleUserSelected" :players="store.everyoneButMe" :columns="96" :hide-header="true"
+      <ListPlayers 
+        @selected="handleUserSelected" 
+        :players="store.everyoneButMe" 
+        :columns="96" 
+        :hide-header="true"
+        :game-session-id="store.gameSession.id"
+        :total-players="store.gameSession.player_count"
+        :active-players="store.gameSession.players?.length"
         :font-size="22" :selection="true" :max-selection="2"></ListPlayers>
     </div>
     <template #footer>

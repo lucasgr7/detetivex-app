@@ -3,6 +3,8 @@ import './style.css'
 import App from './App.vue'
 import { createPinia } from 'pinia'
 
+// add element-plus icons
+import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 
 // animations
 import 'animate.css';
@@ -18,16 +20,21 @@ import ptBR from 'element-plus/es/locale/lang/pt-br'
 
 // icons
 import './icons'
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
 // global css
 import './assets/style.scss'
 
+// add library to Vue
+
 const app = createApp(App)
   .use(createPinia())
   .use(router)
+  .component('pt-br', ptBR)
   .use(ElementPlus, {
     locale: ptBR
   })
-  .component('font-awesome-icon', FontAwesomeIcon)
+  
+for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+  app.component(key, component)
+}
 app.mount('#app')

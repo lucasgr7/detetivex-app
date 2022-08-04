@@ -49,7 +49,11 @@ function handleAusent(){
       :columns="96" 
       :hide-header="true"
       :font-size="22"
-      :selection="true"></ListPlayers>
+      :selection="true"
+      :game-session-id="store.gameSession.id"
+      :total-players="store.gameSession.player_count"
+      :active-players="store.gameSession.players?.length"
+      ></ListPlayers>
       <template #footer>
         <span class="dialog-footer">
           <el-button size="large" plain effect="dark" type="default" @click="handleAusent">agora não</el-button>

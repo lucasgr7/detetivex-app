@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { _campaing_1 } from "./mocks/campaing"
-import { useStore } from "./store/appStore";
 import _ from 'lodash';
 
-const store = useStore();
 </script>
 
 <template>
