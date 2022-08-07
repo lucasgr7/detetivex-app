@@ -25,6 +25,12 @@
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
 }
+html{
+  background-color: #000000;
+  background-image: 
+      radial-gradient(at 47% 33%, hsl(354.69, 76%, 28.999999999999996%) 0, transparent 59%), 
+      radial-gradient(at 82% 65%, hsl(0.00, 100%, 7.000000000000001%) 0, transparent 55%);
+}
 
 a {
   font-weight: 500;

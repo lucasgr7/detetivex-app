@@ -1,3 +1,4 @@
+import { TypePlayerAttribute } from "./api";
 import { TypeAccusation } from "./game";
 
 // Campaing
@@ -27,23 +28,32 @@ export interface Object {
 // Game
 export interface TypeGameV1Session {
   id: number;
+  assassin_index: number;
   id_campaing: number;
   player_count: number;
   is_accusing?: boolean;
-  accusations: TypeAccusation[];
   players: TypePlayerV1[]; 
   map: TypeMap;
+  events?: TypeEvent[];
+  syncs?: string[];
+  playerTurn: number;
+}
+
+export interface TypeEvent{
+  id: number;
+  type: string;
+  data: any;
 }
 
 export interface TypePlayerV1 {
-  id: number;
   name: string;
   points: number;
+  personality: TypePlayerAttribute[];
   is_assassin?: boolean;
   color: string;
   hash: string;
   isTurn?: boolean;
-  position?: number[] | null;
+  position?: any[] | null;
   objects?: Object[];
   weapons?: Weapon[];
 }
@@ -51,7 +61,7 @@ export interface TypePlayerV1 {
 export interface TypeMap {
   yAxis: number;
   xAxis: number;
-  cells: TypeCell[];
+  cells?: TypeCell[];
 }
 
 export interface TypeCell {

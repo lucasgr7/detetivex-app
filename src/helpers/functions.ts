@@ -27,12 +27,12 @@ export function dealWithError(exc: any) {
 }
 
 /**
- * Results a random number from the ginen parameter as a limit
- * @param limit the max limit to return
- * @returns A random number from the ginen parameter
+ * Calculates a random number between 0 and (limit -1)
+ * @param limit the maximum number, will be alwyains -1 the result
+ * @returns A random number
  */
-export function chance(limit: number){
-  const chance = Math.floor(Math.random() * limit)
+export function random(limit: number): number{
+const chance = Math.floor(Math.random() * limit)
   console.log(chance);
   return chance;
 }

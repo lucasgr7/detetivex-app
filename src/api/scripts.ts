@@ -1,5 +1,5 @@
 import { defaultWindow } from "@vueuse/core";
-import { dealWithError } from "../helpers/functions";
+import { dealWithError, generateHash } from "../helpers/functions";
 import { Player, TypeCreateCampaingResponse, TypePlayerAttribute } from "../types/api";
 import { TypeCampaing } from "../types/campaing";
 import { TypeGameSessionResponse } from "../types/game";
@@ -175,8 +175,17 @@ export const genericsController = {
     }
     return {} as TypeGeneric;
   },
-  sync: async (gameSessionId: number, content: any) => {
+  sync: async (gameSessionId: number, content: any, syncKey?: string, iterations = 0) => {
     try {
+        
+      let syncs = content.syncs;
+      if(!syncs){
+        syncs = [];
+      }
+      const myKeySync = !syncKey ? generateHash() : syncKey;
+      syncs.push(myKeySync);
+      content.syncs = syncs;
+
       const requestPayload = {
         method: 'PUT',
         headers: {
@@ -188,10 +197,23 @@ export const genericsController = {
       if (!response.ok) {
         throw response.statusText ?? response;
       }
+      // validate has saved the key of sync
+      const response2 = await fetch(`${api}/generics/${gameSessionId}`);
+      if (!response2.ok) {
+        throw response2.statusText ?? response2;
+      }
+      const body = await response2.json();
+      if (!body.content.syncs.includes(myKeySync)) {
+        if(iterations < 5){
+          return genericsController.sync(gameSessionId, content, myKeySync, iterations + 1);
+        }
+        throw new Error('Sync key not saved');
+      }
+      return true;
     }
     catch (exc: any) {
       dealWithError(exc);
     }
     return {} as TypeGeneric;
-  }
+  },
 }

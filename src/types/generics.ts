@@ -1,7 +1,7 @@
 
 
   export interface TypeGeneric {
-      content: TypeContent;
+      content: any;
       updated_at: string;
       created_at: string;
       id: number;

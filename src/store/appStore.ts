@@ -145,17 +145,17 @@ export const useStore = defineStore('store', {
       
       if(_.isEmpty(this.suspect) && this.myPlayer && !this.myPlayer?.is_killer){
         
-        if(chance(FROM_HUNDRED) < CHANCE_SUSPECT_SOMEONE){ // SUSPEITA?
-          if(chance(FROM_HUNDRED) < SUSPECT_REAL_KILLER){ // 33% suspect a real killer
+        if(random(FROM_HUNDRED) < CHANCE_SUSPECT_SOMEONE){ // SUSPEITA?
+          if(random(FROM_HUNDRED) < SUSPECT_REAL_KILLER){ // 33% suspect a real killer
             this.suspect = {
-              who: this.gameKillers[chance(this.gameKillers?.length)],
-              details: this.campaing.suspects_actions[chance(this.campaing.suspects_actions?.length)]
+              who: this.gameKillers[random(this.gameKillers?.length)],
+              details: this.campaing.suspects_actions[random(this.campaing.suspects_actions?.length)]
             }
           }
           else{ // 45% suspect a anyone else
             this.suspect = {
-              who: this.everyoneButMe[chance(this.everyoneButMe?.length)],
-              details: this.campaing.suspects_actions[chance(this.campaing.suspects_actions?.length)]
+              who: this.everyoneButMe[random(this.everyoneButMe?.length)],
+              details: this.campaing.suspects_actions[random(this.campaing.suspects_actions?.length)]
             }
           }
         }else{
@@ -169,7 +169,7 @@ export const useStore = defineStore('store', {
     generateCharacterAttributes(){
       const FROM_HUNDRED = 101, ONE_MUT = 50, TWO_MUT = 25, THREE_MUT = 10, FOUR_MUT = 6;
       if(_.isEmpty(this.myAttributes)){
-        const mutations = chance(FROM_HUNDRED);
+        const mutations = random(FROM_HUNDRED);
         let iterations = 0;
         if(mutations < FOUR_MUT){
           iterations = 4
@@ -190,7 +190,7 @@ export const useStore = defineStore('store', {
           });
         }
         while(this.myAttributes.length < iterations){
-          const attributes = [...this.myAttributes, this.attributes[chance(this.attributes?.length)]]
+          const attributes = [...this.myAttributes, this.attributes[random(this.attributes?.length)]]
           this.myAttributes = _.union(attributes);
         }
       }

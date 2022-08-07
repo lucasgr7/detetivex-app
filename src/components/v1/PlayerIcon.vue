@@ -1,8 +1,10 @@
 <script lang="ts" setup>
 import { computed, ref } from "vue";
+import { useStoreV1 } from "../../store/appV1Store";
 import PlayerInfo from "./PlayerInfo.vue";
 
-const props = defineProps(['player', 'isMyPlayer', 'style']);
+const store = useStoreV1();
+const props = defineProps(['player', 'style', 'hashPlayerTurn']);
 const showPlayerInfo = ref(false);
 
 const style = computed(() => {
@@ -10,6 +12,10 @@ const style = computed(() => {
     ...props.style,
     'background-color': props.player.color
   }
+})
+
+const isPlayerTurn = computed(() => {
+  return props.player.hash === props.hashPlayerTurn
 })
 
 function handleClick() {
@@ -21,25 +27,26 @@ function handleClick() {
 <template>
   <span 
     :style="style"
-    :class="{'my-player': props.isMyPlayer, 'player-turn': props.player.isTurn}"
+    :class="{'my-player': props.isMyPlayer, 'player-turn': isPlayerTurn}"
     @click="handleClick"
     class="player-icon" >
     {{
       props.player.name.substring(0, 1)
     }}
   </span>
-  <PlayerInfo :player="props.player" :visible="showPlayerInfo"></PlayerInfo>
+  <PlayerInfo @close="showPlayerInfo = false" :player="props.player" 
+    :my-player="store.myPlayer" :visible="showPlayerInfo"></PlayerInfo>
 </template>
 
 <style lang="scss">
   // player-icon class circle with spacing
   .player-icon{
     display: inline-block;
-    width: 24px;
-    height: 24px;
+    width: 44px;
+    height: 44px;
     border-radius: 20%;
-    line-height: 24px;
-    font-size: 12px;
+    line-height: 44px;
+    font-size: 32px;
     cursor: pointer;
   }
   // glowing animated border for my player

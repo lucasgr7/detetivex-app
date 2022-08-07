@@ -1,7 +1,7 @@
 
 export interface TypePlayerAttribute {
   id:  number;
-  points?: number;
+  points: number;
   name: string;
 }
 

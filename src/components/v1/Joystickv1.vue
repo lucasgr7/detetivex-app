@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+const emits = defineEmits(['next-turn'])
 </script>
 
 <template>

@@ -1,14 +1,34 @@
 <script lang="ts" setup>
+import { ElNotification } from 'element-plus';
 import { computed, onMounted, ref } from 'vue';
 import type { TypeMap, TypeCell, TypePlayerV1 } from '../../types/gamev1.js';
 
-const props = defineProps(['visible', 'player']);
+const props = defineProps(['visible', 'player', 'myPlayer']);
+const emits = defineEmits(['reveal', 'close']);
 
 const infoPlayer = ref({} as TypePlayerV1);
 
 // function returns background for the player color in gradient
 function getPlayerColor(player: TypePlayerV1) {
-  return `background: linear-gradient(to bottom, ${player.color} 0%, #fff 100%)`;
+  return `background: linear-gradient(to bottom, ${player.color} 0%, rgb(0 255 223) 100%)`;
+}
+
+// function emits when user reveal hits 100
+function handleReveal(item: any) {
+  if (props.myPlayer.points <= 0){
+    ElNotification({
+      title: 'Sem pontos suficientes',
+      message: 'Você não tem pontos suficientes para revelar',
+      type: 'error',
+    });
+    item.unlock = 0;
+    return;
+  }
+  if(item.unlock === 100) {
+    emits('reveal', item);
+  }else{
+    item.unlcok = 0;
+  }
 }
 
 const itens = computed(() => {
@@ -21,44 +41,43 @@ const itens = computed(() => {
     :close-on-press-escape="false">
     <el-main>
       <el-card id="player-info">
-        <el-row justify="start">
+        <el-row class="first-row" justify="start">
           <el-col :xs="16">
-          <el-row justify="start">
-            <h2 id="title-file">Ficha de {{props.player.name}}</h2>
-          </el-row>
+            <el-row justify="start" align="middle" id="title-file">
+              Ficha de {{ props.player.name }}
+            </el-row>
           </el-col>
           <el-col :xs="8">
-          <el-row justify="end">
-            <div :style="getPlayerColor(props.player)" class="player-color">
-              <!--  centered  -->
-              <span id="question-mark">
-                ???
-              </span>
-            </div>
-          </el-row>
+            <el-row justify="end">
+              <div :style="getPlayerColor(props.player)" class="player-color">
+                <!--  centered  -->
+                <span id="question-mark">
+                  ?
+                </span>
+              </div>
+            </el-row>
           </el-col>
           <!-- round div with the player color as background -->
         </el-row>
-          <hr/>
-        <el-row justify="center">
+        <div justify="end" class="personality">
+          {{props.player.personality.join(', ')}}
+        </div>
+        <el-row style="margin-top: 20px" justify="center">
           Pertences
         </el-row>
-        <hr/>
+        <hr />
         <el-row>
-          <el-row class="player-itens">
-            <el-col :span="24" v-for="(item, i) of itens" :key="i">
-              <el-row>
-                <el-col class="col-button" :xs="4">
-                  <el-button class="reaveal-button" type="primary" @click="emits('reveal-item', item)">
-                    <el-icon>
-                      <Search />
-                    </el-icon>
-                  </el-button>
-                </el-col>
-                <span>{{ item.name }}</span>
+          <el-main class="player-itens">
+            <el-row :span="24" v-for="(item, i) of itens" :key="i">
+            <div v-if="item.unlock < 100 || !item.unlock" style="width: 100%; padding: 0px 10px 0px 10px;">
+              <span v-if="props.myPlayer.points > 0" class="demonstration">Arraste para decobrir</span>
+              <span  v-else class="demonstration has-no-points">Sem pontos suficientes</span>
+              <el-slider :disabled="props.myPlayer.points <= 0" v-model="item.unlock" @change="handleReveal(item)" />
+
+            </div>
+              <span v-else>{{ item.name }}</span>
               </el-row>
-            </el-col>
-          </el-row>
+          </el-main>
         </el-row>
       </el-card>
     </el-main>
@@ -66,29 +85,41 @@ const itens = computed(() => {
 </template>
 
 <style lang="scss">
-.el-dialog.is-fullscreen{
-    backdrop-filter: blur(6px) saturate(151%);
-    -webkit-backdrop-filter: blur(6px) saturate(151%);
-    background-color: rgba(17, 25, 40, 0.53);
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.125);
-}</style>
+.el-dialog.is-fullscreen {
+  backdrop-filter: blur(6px) saturate(151%);
+  -webkit-backdrop-filter: blur(6px) saturate(151%);
+  background-color: rgba(17, 25, 40, 0.53);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.125);
+}
+</style>
 <style lang="scss" scoped>
+$--el-color-primary: white;
 #player-info {
   // background color gradient of brown and white with opacity 0.5
   background-image: linear-gradient(to bottom, #473b3b 0%, rgb(54, 49, 49) 100%);
+  
+  font-family: monospace;
   #title-file {
-    font-size: 1.2em;
+    font-size: 21px;
     font-weight: bold;
-    // use a misterious font-family to avoid the text to be cutted in the middle of the word 
-    font-family: 'FontAwesome';
-    // use the icon of a search to show the item is hidden
-    font-size: 1.5em;
-    z-index: 9999 !important;
+    //alignment middle
+    margin-top: 20px;
+    color: #fff;
+  }
+  .el-row:first-child{
+    margin-bottom: 10px;
+  }
+
+  .first-row {
+    margin-bottom: -20px;
+  }
+  .personality{
+    color: #9e9e9e;
   }
 
   margin-bottom: 20px;
-  font-size: 2.0em;
+  font-size: 1.3em;
   border: solid 4px #00bcd4;
   border-color: #473f3f;
 
@@ -98,20 +129,21 @@ const itens = computed(() => {
   }
 
   .player-color {
-    width: 100px;
-    height: 100px;
-    border-radius: 20%;
+    width: 60px;
+    height: 60px;
+    border-radius: 10%;
     padding: 00px;
-    margin: 10px;
+    margin: 00px;
 
     #question-mark {
       // centered
       transform: translate(-50%, -50%);
-      margin-top: 28px;
-      margin-left: -27px;
+      margin-top: 16px;
+      margin-left: -9px;
       position: absolute;
-
-      animation: blink 1s infinite;
+      animation: blink 2s infinite;
+      font-size: 45px;
+      font-family: parent;
 
       @keyframes blink {
         0% {
@@ -133,32 +165,28 @@ const itens = computed(() => {
   }
 
   .player-itens {
-    .el-col {
+    width: 100%;
+    color: rgb(142, 142, 0);
+    .el-row {
       padding: 0px;
       margin: 0px;
       margin-right: 10px;
       margin-bottom: 10px;
       font-size: 0.5em;
-.col-button{
-  .reaveal-button {
-    // a round button with icon of a search to reveal the item opacity. 0.5
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    margin-right: 20px;
-    line-height: 50px;
-    text-align: center;
-    font-size: 24px;
-    opacity: 0.5;
-    transition: opacity 0.5s;
-    &:hover {
-      opacity: 1;
-      // should rotate 360 degrees
-      transform: rotate3d(0, 0, 1, 360deg);
     }
-  }
+    .demonstration{
+      margin-top: 0px;
+      width: 90%;
+      margin-left: 10px;
+      left: 0;
 
-}
+      //font glowing green effect
+      color: #00d463;
+      text-shadow: 0 0 10px #00bcd4;
+      &.has-no-points{
+      color: #ff3535;
+      text-shadow: 0 0 10px #ff614c;
+      }
     }
 
   }
