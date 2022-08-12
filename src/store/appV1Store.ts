@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { useLocalStorage } from "@vueuse/core"
 import { createGameSession, fetchGameSession, genericsController } from "../api/scripts";
-import { TypeGameV1Session, TypePlayerV1 } from "../types/gamev1";
+import { TypeCell, TypeGameV1Session, TypePlayerV1 } from "../types/gamev1";
 import { random } from "../helpers/functions";
 import { __CAMPAING_V1_HOUSE } from "../mocks/campaings_v1";
 import _ from "lodash";
@@ -11,13 +11,17 @@ export const useStoreV1 = defineStore('storeV1', {
     return {
       hash: useLocalStorage('hash', ''),
       gameSession: useLocalStorage('gameSessionV1', {} as  TypeGameV1Session),
+      cellAt: useLocalStorage('cellAt', {} as any),
       freeForUpdate: true,
     }
   },
   getters: {
     myPlayer: state => {
-      const myPlayer = state.gameSession?.players?.find(player => player.hash === state.hash)
+      // retrieve my player index position
+      const myPlayerIndex = _.findIndex(state.gameSession.players, (player: TypePlayerV1) => player.hash === state.hash);
+      const myPlayer = state.gameSession?.players?.find(player => player.hash === state.hash);
       if(!myPlayer) return null;
+      myPlayer.is_assassin = myPlayerIndex === state.gameSession.assassin_index;
       return myPlayer;
     },
     hasGameStarted: state => {
@@ -39,7 +43,18 @@ export const useStoreV1 = defineStore('storeV1', {
       return state.gameSession?.players[state.gameSession.playerTurn]?.hash;
     },
     isMyTurn: state => {
-      return state.gameSession?.players[state.gameSession.playerTurn]?.hash === state.hash;
+      try{
+        return state.gameSession?.players[state.gameSession.playerTurn]?.hash === state.hash;
+      }
+      catch(exc: any){
+        return false;
+      }
+    },
+    hasHiddenBody: state => {
+      // check for nullables
+      if(!state.gameSession.map) return false;
+      if(!state.gameSession.map?.cells || state.gameSession.map?.cells?.length === 0) return false;
+      return state.gameSession.map.cells.filter((cell: TypeCell) => cell?.isHiddenBody).length > 0;
     }
   },
   actions: {
@@ -74,6 +89,13 @@ export const useStoreV1 = defineStore('storeV1', {
         this.gameSession = content;
       }
 
+    },
+    _getMyPlayer_() {
+      const myPlayerIndex = _.findIndex(this.gameSession.players, (player: TypePlayerV1) => player.hash === this.hash);
+      const myPlayer = this.gameSession?.players?.find(player => player.hash === this.hash);
+      if(!myPlayer) return null;
+      myPlayer.is_assassin = myPlayerIndex === this.gameSession.assassin_index;
+      return myPlayer;
     },
     async createPlayer(player: TypePlayerV1): Promise<boolean> {
       // validate user has color, if not assing a random one
@@ -119,7 +141,35 @@ export const useStoreV1 = defineStore('storeV1', {
       }else{
         this.gameSession.playerTurn++;
       }
+      // each player gains one point
+      this.gameSession.players.forEach(player => {
+        player.points++;
+      });
+
+      this.saveGame();
+      this.savePlayerCell();
+    },
+    saveGame(): void{
       genericsController.sync(this.gameSession.id, this.gameSession);
+    },
+    savePlayerCell(): void{
+      // find cell where my player is at
+      const myPlayerCell = this.gameSession.map?.cells?.find(cell => cell.players?.find(player => player.hash === this.hash));
+      if(!myPlayerCell) return;
+      this.cellAt = myPlayerCell;
+    },
+    unlockPersonInfo(): void{
+      if(!this.myPlayer) return;
+      const points = this.myPlayer?.points - 2;
+      // patch my player into gameSession.players
+      this.gameSession.players = this.gameSession.players.map(player => {
+        if(player.hash === this.hash){
+          player.points = points;
+        }
+        return player;
+      });
+      console.table(this.myPlayer)
+      this.saveGame();
     }
   },
 });

@@ -1,11 +1,17 @@
 <script lang="ts" setup>
-const emits = defineEmits(['next-turn'])
+const emits = defineEmits(['next-turn', 'trap-install'])
 </script>
 
 <template>
 <div id="control-buttons">
   <el-row justify="center">
-    <el-col :xs="24" :sm="24" :md="24" :lg="24" :xl="24">
+    <el-col :xs="12" :sm="12" :md="12" :lg="12" :xl="12">
+      <!-- button to the next turn -->
+      <el-button type="default" id="next-turn" @click="emits('trap-install')">
+        <el-icon><Position /></el-icon>
+      </el-button>
+    </el-col>
+    <el-col :xs="12" :sm="12" :md="12" :lg="12" :xl="12">
       <!-- button to the next turn -->
       <el-button type="default" id="next-turn" @click="emits('next-turn')">
         <el-icon><Check /></el-icon>

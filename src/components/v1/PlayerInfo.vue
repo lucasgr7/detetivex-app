@@ -1,10 +1,12 @@
 <script lang="ts" setup>
 import { ElNotification } from 'element-plus';
 import { computed, onMounted, ref } from 'vue';
+import { useStoreV1 } from '../../store/appV1Store';
 import type { TypeMap, TypeCell, TypePlayerV1 } from '../../types/gamev1.js';
 
 const props = defineProps(['visible', 'player', 'myPlayer']);
 const emits = defineEmits(['reveal', 'close']);
+const store = useStoreV1();
 
 const infoPlayer = ref({} as TypePlayerV1);
 
@@ -15,7 +17,7 @@ function getPlayerColor(player: TypePlayerV1) {
 
 // function emits when user reveal hits 100
 function handleReveal(item: any) {
-  if (props.myPlayer.points <= 0){
+  if (props.myPlayer.points <= 1){
     ElNotification({
       title: 'Sem pontos suficientes',
       message: 'Você não tem pontos suficientes para revelar',
@@ -25,7 +27,7 @@ function handleReveal(item: any) {
     return;
   }
   if(item.unlock === 100) {
-    emits('reveal', item);
+    store.unlockPersonInfo();
   }else{
     item.unlcok = 0;
   }
@@ -60,7 +62,7 @@ const itens = computed(() => {
           <!-- round div with the player color as background -->
         </el-row>
         <div justify="end" class="personality">
-          {{props.player.personality.join(', ')}}
+          {{props.player.personality.map(x => x.name).join(', ')}}
         </div>
         <el-row style="margin-top: 20px" justify="center">
           Pertences
@@ -72,7 +74,7 @@ const itens = computed(() => {
             <div v-if="item.unlock < 100 || !item.unlock" style="width: 100%; padding: 0px 10px 0px 10px;">
               <span v-if="props.myPlayer.points > 0" class="demonstration">Arraste para decobrir</span>
               <span  v-else class="demonstration has-no-points">Sem pontos suficientes</span>
-              <el-slider :disabled="props.myPlayer.points <= 0" v-model="item.unlock" @change="handleReveal(item)" />
+              <el-slider :disabled="props.myPlayer.points <= 0" v-model="item.unlock" @input="handleReveal(item)" />
 
             </div>
               <span v-else>{{ item.name }}</span>
