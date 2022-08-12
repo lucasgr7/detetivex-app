@@ -159,17 +159,26 @@ export const useStoreV1 = defineStore('storeV1', {
       this.cellAt = myPlayerCell;
     },
     unlockPersonInfo(): void{
+      this.spentPoints(2)
+      this.saveGame();
+    },
+    placeATrap(): void{
+      this.spentPoints(4);
+      this.saveGame();
+    },
+    spentPoints(points: number): void{
       if(!this.myPlayer) return;
-      const points = this.myPlayer?.points - 2;
+      const totalPoints = this.myPlayer?.points - points;
+      if(totalPoints < 0){
+        throw new Error('Você não tem pontos suficientes');
+      }
       // patch my player into gameSession.players
       this.gameSession.players = this.gameSession.players.map(player => {
         if(player.hash === this.hash){
-          player.points = points;
+          player.points = totalPoints;
         }
         return player;
       });
-      console.table(this.myPlayer)
-      this.saveGame();
     }
   },
 });

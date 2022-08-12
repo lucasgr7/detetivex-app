@@ -43,14 +43,36 @@ function handleTileMapClick(x: number, y: number){
     }
     else if(props.turn === TURN_INSTALL_TRAP){
       const cell = getCellAt(x, y);
-      cell.hasTrap = true
-      updateCells(cell);
-      emits('trap-installed')
-      ElNotification({
-        title: 'Armadilha instalada',
-        message: 'Você instalou uma trap na posição ' + cell.x + ' - ' + cell.y,
-        type: 'success'
-      });
+      if(!hasPossibilityInstalTrap(x, y)){
+        ElNotification({
+          title: 'Muito longe',
+          type: 'error'
+        });
+        return;
+      }
+      if(cell.hasTrap){
+        ElNotification({
+          title: 'Já possui Armadilha',
+          type: 'warning'
+        });
+        return;
+      }
+      try{
+        cell.hasTrap = true
+        store.placeATrap();
+        updateCells(cell);
+        ElNotification({
+          title: 'Armadilha instalada na posição ' + cell.x + ' - ' + cell.y,
+          type: 'success'
+        });
+      }
+      catch(exc: any){
+        cell.hasTrap = false;
+        ElNotification({
+          title: exc.message,
+          type: 'error'
+        });
+      }
     }else{
       purgeMeFromCells();
       const cell = getCellAt(x, y);
@@ -141,7 +163,7 @@ function hasPossibilityInstalTrap(x: number, y: number){
   return possible
 }
 function hasTrap(x: number, y: number){
-  return (getCellAt(x, y)?.hasTrap ?? false) && props.isAssassin  ;
+  return (getCellAt(x, y)?.hasTrap ?? false) && props.isAssassin && props.turn === TURN_INSTALL_TRAP;
 }
 
 function createMapCells(map: TypeMap){
