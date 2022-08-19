@@ -1,4 +1,4 @@
-import { defineStore } from "pinia";
+import { defineStore, storeToRefs } from "pinia";
 import { useLocalStorage } from "@vueuse/core"
 import { createGameSession, fetchGameSession, genericsController } from "../api/scripts";
 import { TypeCell, TypeGameV1Session, TypePlayerV1 } from "../types/gamev1";
@@ -158,7 +158,6 @@ export const useStoreV1 = defineStore('storeV1', {
       this.pointsSpent = 0;
     },
     handleNextTurn(): void{
-      debugger;
       if(this.gameSession.playerTurn === this.gameSession.players.length - 1){
         this.gameSession.playerTurn = 0;
       }else{
@@ -193,25 +192,28 @@ export const useStoreV1 = defineStore('storeV1', {
       console.table(randomCells);
       // assign clues to the random cells
       randomCells.forEach((cell: TypeCell, idx: number) => {
-        debugger;
         cell.clue = assassin?.objects[idx].clue;
         this.gameSession.map.cells?.push(cell);
       });      
     },
     generateCellsAround(x: number, y: number): TypeCell[]{
       const cells = [];
-      for(let i = -1; i <= 1; i++){
-        for(let j = -1; j <= 1; j++){
-          if(i === 0 && j === 0) continue;
+      for(let ix = -1; ix <= 1; ix++){
+        for(let iy = -1; iy <= 1; iy++){
+          if((ix + x === x && iy + y === y) || !this.isCellPositionValid(x + ix, y + iy)) continue;
           const cell = {
-            x: x + i,
-            y: y + j,
+            x: x + ix,
+            y: y + iy,
             players: [],
           }
           cells.push(cell);
         }
       }
       return cells;
+    },
+    isCellPositionValid(x: number, y: number): boolean{
+      if(x > this.gameSession.map.xAxis || y > this.gameSession.map.yAxis || x === 0 || y === 0) return false;
+      return true;
     },
     saveGame(): void{
       genericsController.sync(this.gameSession.id, this.gameSession);

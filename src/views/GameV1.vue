@@ -44,6 +44,7 @@ function gameLoop(){
   setInterval(async () => {
     if(store.isMyTurn) return; // cancel if it is player turn    debugger;
     if(gameTurn.value === TURN_HIDE_BODY) return; // cancel if it is player turn
+    if(store.showCreatePlayer) return;
     await store.syncGameData();
   }, 5000)
 }
