@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-const emits = defineEmits(['next-turn', 'trap-install'])
+const emits = defineEmits(['next-turn', 'trap-install']);
+const props = defineProps(['disabled', 'turnHideBody']);
 </script>
 
 <template>
@@ -13,7 +14,10 @@ const emits = defineEmits(['next-turn', 'trap-install'])
     </el-col>
     <el-col :xs="12" :sm="12" :md="12" :lg="12" :xl="12">
       <!-- button to the next turn -->
-      <el-button type="default" id="next-turn" @click="emits('next-turn')">
+      <el-button type="default" id="next-turn" 
+        :disabled="props.disabled"
+        :class="{'disabled': props.disabled, 'hidebody': props.turnHideBody}"
+        @click="emits('next-turn')">
         <el-icon><Check /></el-icon>
       </el-button>
     </el-col>
@@ -31,6 +35,12 @@ const emits = defineEmits(['next-turn', 'trap-install'])
   height: 80px;
   // backgroudn gradient from top to bottom with opacity 0.5 and 0.1
   background-image: linear-gradient(to bottom, rgba(126, 126, 126, 0.5) 0%, rgba(126, 126, 126, 0.1) 100%);
+  .disabled{
+    // button pressed
+  background-color: #666666;
+    background-image: linear-gradient(to bottom, rgba(78, 78, 78, 0.5) 0%, rgba(163, 163, 163, 0.1) 100%);
+    box-shadow: none;
+  }
 }
 #next-turn{
   // center horizontally
@@ -45,10 +55,12 @@ const emits = defineEmits(['next-turn', 'trap-install'])
   text-align: center;
   font-size: 24px;
   color: #fff;
-  background-color: #727272;
+  background-color: #be6a1b;
   // 3d button style effect
   box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
-
+  &.hidebody{
+  background-color: #ff0000;
+  }
   
 }
 </style>
