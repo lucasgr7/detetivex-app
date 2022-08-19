@@ -4,10 +4,10 @@ import { Star } from '@element-plus/icons-vue'
 import { useStoreV1 } from '../../store/appV1Store';
 
 const store = useStoreV1();
-const value = ref(store.myPlayer?.points)
+const value = ref(store.myPoints)
 
-watch(() => store.myPlayer?.points, () => {
-  value.value = store.myPlayer?.points
+watch(() => store.myPoints, () => {
+  value.value = store.myPoints
 })
 </script>
 
