@@ -12,6 +12,7 @@ import { ElMessage } from 'element-plus';
 import { computed } from '@vue/reactivity';
 import Description from '../components/v1/Description.vue';
 import IndicatorPoints from '../components/v1/IndicatorPoints.vue';
+import Debug from '../components/v1/Debug.vue';
 
 const TURN_HIDE_BODY = 1;
 const TURN_MOVE = 2;
@@ -41,7 +42,8 @@ async function handleValidateIdGame(){
 }
 function gameLoop(){
   setInterval(async () => {
-    if(store.isMyTurn) return; // cancel if it is player turn
+    if(store.isMyTurn) return; // cancel if it is player turn    debugger;
+    if(gameTurn.value === TURN_HIDE_BODY) return; // cancel if it is player turn
     await store.syncGameData();
   }, 5000)
 }
@@ -55,15 +57,8 @@ watch(() => store.isMyTurn, (isMyTurnNow: boolean) => {
   }
 });
 // watch when player has created and is an assassin
-watch(() => store.myPlayer, (myPlayer: any) => {
-  if(myPlayer && myPlayer.is_assassin && !store.hasHiddenBody){
-    ElMessage({
-      message: 'Você é o assassino',
-      type: 'info'
-    });
-    showAssassinInfo.value = true;
-    gameTurn.value = TURN_HIDE_BODY;
-  }
+watch(() => store.hasGameStarted, (myPlayer: any) => {
+  handleEnableHideBody();
 });
 
 
@@ -75,6 +70,12 @@ function handleFinishTurn(){
       type: 'warning'
     });
     return;
+  }
+  if(gameTurn.value !== TURN_HIDE_BODY && !store.isMyTurn){
+    return;
+  }
+  if(gameTurn.value === TURN_HIDE_BODY && store.myPlayer?.is_assassin){
+    store.placeCluesAroundCellWithBody();
   }
   gameTurn.value = TURN_MOVE;
   store.handleNextTurn();
@@ -97,12 +98,23 @@ function handleActivateTrapInstall(){
 function handleTrapInstalled(){
   gameTurn.value = TURN_MOVE;
 }
+function handleEnableHideBody(){
+  if(store.myPlayer && store.myPlayer.is_assassin && !store.hasHiddenBody){
+    ElMessage({
+      message: 'Esconda o corpo',
+      type: 'info'
+    });
+    showAssassinInfo.value = true;
+    gameTurn.value = TURN_HIDE_BODY;
+  }
+}
 
 onBeforeMount(() => {
   handleValidateIdGame()
 })
 onMounted(async () => {
   await handleValidateIdGame();
+  handleEnableHideBody();
   gameLoop();
   await store.syncGameData();
 });
@@ -112,22 +124,28 @@ onMounted(async () => {
   <el-main id="v1">
     <!-- a display of code -->
      <el-row justify="start" style="margin: 12px" class="code">
-      Turno: {{gameTurn}}
+      Turno: {{store.gameSession.gameTurn}}
+      Tipo Turno: {{gameTurn}}
+      {{store.myPlayer?.is_assassin ? 'Assassino' : 'Detetive'}}
+      {{store.hasHiddenBody}}
     </el-row>
     <IndicatorPoints></IndicatorPoints>
+    <Debug></Debug>
     <Description :visible="showAssassinInfo"></Description>
     <CreatePlayer 
       :visible="store.showCreatePlayer"
       @created="handleCreatePlayer"></CreatePlayer>
     <Map v-if="store.isGameLoaded"
-      :disabled="!store.isMyTurn"
+      :disabled="gameTurn !== TURN_HIDE_BODY && !store.isMyTurn"
       :is-assassin="store.myPlayer?.is_assassin" 
       :turn="gameTurn" 
       :players="store.gameSession.players"
       :hash-player-turn="store.hashPlayerTurn"
       :me="store.myPlayer" @trap-installed="handleTrapInstalled">
     </Map>
-    <Joystickv1 
+    <Joystickv1
+      :disabled="gameTurn !== TURN_HIDE_BODY && !store.isMyTurn"
+      :turn-hide-body="gameTurn === TURN_HIDE_BODY"
       @next-turn="handleFinishTurn"
       @trap-install="handleActivateTrapInstall"></Joystickv1>
   </el-main>

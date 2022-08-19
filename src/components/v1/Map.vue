@@ -26,7 +26,7 @@ const playersWithoutPosition = computed(() =>{
 })
 
 function handleTileMapClick(x: number, y: number){
-  if(props.disabled && props.turn !== TURN_INSTALL_TRAP){
+  if(props.disabled && props.turn !== TURN_INSTALL_TRAP && props.turn !== TURN_HIDE_BODY){
     ElNotification({
       title: 'Espere seu turno',
       message: 'Você não pode mover quando não é seu turno',
@@ -45,7 +45,7 @@ function handleTileMapClick(x: number, y: number){
       const cell = getCellAt(x, y);
       if(!hasPossibilityInstalTrap(x, y)){
         ElNotification({
-          title: 'Muito longe',
+          title: 'Você não pode instalar uma trap aqui',
           type: 'error'
         });
         return;
@@ -91,7 +91,6 @@ function handleTileMapClick(x: number, y: number){
 function updateCells(cell: TypeCell){
   store.gameSession.map.cells?.push(cell);
   store.gameSession.map.cells = _.uniqBy(store.gameSession.map.cells, (x) => x.x + '-' + x.y);
-  store.saveGame();
 }
 function purgeMeFromCells(){
   for(let x = 0; x < store.gameSession.map.xAxis + 1; x++){
@@ -127,6 +126,10 @@ function getCellAt(x: number, y: number): TypeCell{
   if(playersAtThisCell && playersAtThisCell.length > 0){
     cell.players = _.uniq(playersAtThisCell);
   }
+  // fix for when cell has no array for players
+  if(!cell?.players){
+    cell.players = [];
+  }
   return cell;
 }
 
@@ -141,7 +144,9 @@ function hasVictim(x: number, y: number){
 
 function hasPossibilityInstalTrap(x: number, y: number){
   if(props.turn !== TURN_INSTALL_TRAP) return;
-  let possible = getCellAt(x, y)?.players?.length === 0 ?? false;
+  const cell = getCellAt(x, y);
+  if(!cell) return false;
+  let possible = cell.players?.length === 0 || cell.clue != null;
   // check if this cell is next to the player
   if(possible){
     const myPosition = store.cellAt;
@@ -163,20 +168,10 @@ function hasPossibilityInstalTrap(x: number, y: number){
   return possible
 }
 function hasTrap(x: number, y: number){
-  return (getCellAt(x, y)?.hasTrap ?? false) && props.isAssassin && props.turn === TURN_INSTALL_TRAP;
+  return (getCellAt(x, y)?.hasTrap ?? false);
 }
-
-function createMapCells(map: TypeMap){
-  const cells = [];
-  for(let y = 0; y < map.xAxis + 1; y++){
-    for(let x = 0; x < map.yAxis  + 1; x++){
-      cells.push({
-        x, y,
-        players: [],
-      });
-    }
-  }
-  return cells;
+function hasClue(x: number, y: number){
+  return (getCellAt(x, y)?.clue);
 }
 
 
@@ -211,7 +206,8 @@ onMounted(() => {
       class="map-tile"
       :class="{'red' : hasVictim(x, y),
       'yellow' : hasPossibilityInstalTrap(x, y),
-      'orange' : hasTrap(x, y)}"
+      'orange' : hasTrap(x, y),
+      'blue' : hasClue(x, y)}"
       @click="handleTileMapClick(x, y)"
       >
       {{x}} {{y}}
@@ -302,6 +298,10 @@ onMounted(() => {
     to{
       background-color: #e98401;
     }
+  }
+  .blue{
+    animation: color-orange 1s;
+    background-color: rgb(0, 153, 255);
   }
   
 }

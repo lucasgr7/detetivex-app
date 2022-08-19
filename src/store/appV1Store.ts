@@ -2,17 +2,20 @@ import { defineStore } from "pinia";
 import { useLocalStorage } from "@vueuse/core"
 import { createGameSession, fetchGameSession, genericsController } from "../api/scripts";
 import { TypeCell, TypeGameV1Session, TypePlayerV1 } from "../types/gamev1";
-import { random } from "../helpers/functions";
+import { generateHash, random } from "../helpers/functions";
 import { __CAMPAING_V1_HOUSE } from "../mocks/campaings_v1";
 import _ from "lodash";
+import { clueTypeGenerator } from "../helpers/clueGenerator";
 
 export const useStoreV1 = defineStore('storeV1', {
   state: () => {
     return {
-      hash: useLocalStorage('hash', ''),
+      hash: useLocalStorage('hash',  generateHash()),
       gameSession: useLocalStorage('gameSessionV1', {} as  TypeGameV1Session),
       cellAt: useLocalStorage('cellAt', {} as any),
       freeForUpdate: true,
+      cluesRevealed: useLocalStorage('cluesRevealed', [] as any),
+      pointsSpent: useLocalStorage('pointsSpent', 0),
     }
   },
   getters: {
@@ -44,6 +47,9 @@ export const useStoreV1 = defineStore('storeV1', {
     },
     isMyTurn: state => {
       try{
+        if(!state.gameSession.map) return false;
+        if(!state.gameSession.map?.cells || state.gameSession.map?.cells?.length === 0) return false;
+        if(state.gameSession.map.cells.filter((cell: TypeCell) => cell?.isHiddenBody).length <= 0) return false;
         return state.gameSession?.players[state.gameSession.playerTurn]?.hash === state.hash;
       }
       catch(exc: any){
@@ -55,6 +61,11 @@ export const useStoreV1 = defineStore('storeV1', {
       if(!state.gameSession.map) return false;
       if(!state.gameSession.map?.cells || state.gameSession.map?.cells?.length === 0) return false;
       return state.gameSession.map.cells.filter((cell: TypeCell) => cell?.isHiddenBody).length > 0;
+    },
+    myPoints: state=> {
+      const total = state.gameSession.gameTurn - state.pointsSpent;
+      if(total > 10) return 10;
+      return total;
     }
   },
   actions: {
@@ -71,6 +82,7 @@ export const useStoreV1 = defineStore('storeV1', {
         is_accusing: false,
         players: [],
         playerTurn: random(player_count),
+        gameTurn: 0,
         map: {
           yAxis: 5,
           xAxis: 5,
@@ -122,6 +134,13 @@ export const useStoreV1 = defineStore('storeV1', {
       player.weapons = [randomWeapon];
       // pick three random object from the campaing and assing to the player
       const randomObjects = _.shuffle(campaing.objects).slice(0, 3);
+      randomObjects.forEach(object => {
+        if(!object.type) return;
+        // generate a random attribute for the object
+        const attributeClue = clueTypeGenerator(object.type);
+        object.clue += attributeClue;
+        object.name += attributeClue;
+      })
       player.objects = randomObjects;
       // add the player to the game
       if(!this.gameSession.players){
@@ -134,20 +153,65 @@ export const useStoreV1 = defineStore('storeV1', {
     },
     clearMemory(){
       this.gameSession = {} as TypeGameV1Session;
+      this.cellAt = {} as any;
+      this.cluesRevealed = [];
+      this.pointsSpent = 0;
     },
     handleNextTurn(): void{
+      debugger;
       if(this.gameSession.playerTurn === this.gameSession.players.length - 1){
         this.gameSession.playerTurn = 0;
       }else{
         this.gameSession.playerTurn++;
       }
-      // each player gains one point
-      this.gameSession.players.forEach(player => {
-        player.points++;
-      });
-
+      this.gameSession.gameTurn += 1;
       this.saveGame();
       this.savePlayerCell();
+    },
+    placeCluesAroundCellWithBody(): void{
+      console.table(this.gameSession?.map?.cells);
+      // check if gamesession map and cells is valid
+      if(!this.gameSession.map || !this.gameSession.map.cells)return;
+      // find cell with hidden body
+      const cellWithHiddenBody = this.gameSession.map.cells.find((cell: TypeCell) => cell.isHiddenBody);
+
+      if(!cellWithHiddenBody) return;
+
+      const assassin = this.myPlayer;
+      if(!assassin?.objects || !assassin?.weapons) return;
+      
+      // place the death weapon clue
+      cellWithHiddenBody.clue = assassin?.weapons[0].clue;
+
+      // select all the cells around the cell with the hidden body
+      const cellsAround = this.generateCellsAround(cellWithHiddenBody.x, cellWithHiddenBody.y);
+      cellsAround.forEach((cell: TypeCell) => {
+        cell.isNearBody = true;
+      });
+      // select 3 random cells from cellsAround
+      const randomCells = _.shuffle(cellsAround).slice(0, 3);
+      console.table(randomCells);
+      // assign clues to the random cells
+      randomCells.forEach((cell: TypeCell, idx: number) => {
+        debugger;
+        cell.clue = assassin?.objects[idx].clue;
+        this.gameSession.map.cells?.push(cell);
+      });      
+    },
+    generateCellsAround(x: number, y: number): TypeCell[]{
+      const cells = [];
+      for(let i = -1; i <= 1; i++){
+        for(let j = -1; j <= 1; j++){
+          if(i === 0 && j === 0) continue;
+          const cell = {
+            x: x + i,
+            y: y + j,
+            players: [],
+          }
+          cells.push(cell);
+        }
+      }
+      return cells;
     },
     saveGame(): void{
       genericsController.sync(this.gameSession.id, this.gameSession);
@@ -158,8 +222,10 @@ export const useStoreV1 = defineStore('storeV1', {
       if(!myPlayerCell) return;
       this.cellAt = myPlayerCell;
     },
-    unlockPersonInfo(): void{
-      this.spentPoints(2)
+    unlockPersonInfo(itemRevealed: any): void{
+      this.spentPoints(2);
+      if(!this.cluesRevealed) this.cluesRevealed = [];
+      this.cluesRevealed.push(itemRevealed);
       this.saveGame();
     },
     placeATrap(): void{
@@ -168,17 +234,12 @@ export const useStoreV1 = defineStore('storeV1', {
     },
     spentPoints(points: number): void{
       if(!this.myPlayer) return;
-      const totalPoints = this.myPlayer?.points - points;
+      const pointsUserWantSpent = this.pointsSpent + points;
+      const totalPoints = this.gameSession.gameTurn - pointsUserWantSpent;
       if(totalPoints < 0){
         throw new Error('Você não tem pontos suficientes');
       }
-      // patch my player into gameSession.players
-      this.gameSession.players = this.gameSession.players.map(player => {
-        if(player.hash === this.hash){
-          player.points = totalPoints;
-        }
-        return player;
-      });
+      this.pointsSpent += points;
     }
   },
 });

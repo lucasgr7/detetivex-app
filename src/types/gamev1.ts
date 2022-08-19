@@ -38,6 +38,7 @@ export interface TypeGameV1Session {
   syncs?: string[];
   playerTurn: number;
   hasAssassinHideTheBody?: boolean;
+  gameTurn: number;
 }
 
 export interface TypeEvent{
@@ -74,4 +75,5 @@ export interface TypeCell {
   isHiddenObject?: boolean;
   players?: TypePlayerV1[];
   hasTrap?: boolean;
+  isNearBody?: boolean;
 }

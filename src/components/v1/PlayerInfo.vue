@@ -4,7 +4,7 @@ import { computed, onMounted, ref } from 'vue';
 import { useStoreV1 } from '../../store/appV1Store';
 import type { TypeMap, TypeCell, TypePlayerV1 } from '../../types/gamev1.js';
 
-const props = defineProps(['visible', 'player', 'myPlayer']);
+const props = defineProps(['visible', 'player']);
 const emits = defineEmits(['reveal', 'close']);
 const store = useStoreV1();
 
@@ -17,7 +17,7 @@ function getPlayerColor(player: TypePlayerV1) {
 
 // function emits when user reveal hits 100
 function handleReveal(item: any) {
-  if (props.myPlayer.points <= 1){
+  if (store.myPoints <= 1) {
     ElNotification({
       title: 'Sem pontos suficientes',
       message: 'Você não tem pontos suficientes para revelar',
@@ -26,20 +26,39 @@ function handleReveal(item: any) {
     item.unlock = 0;
     return;
   }
-  if(item.unlock === 100) {
-    store.unlockPersonInfo();
-  }else{
+  if (item.unlock === 100) {
+    console.log(item);
+    store.unlockPersonInfo(item);
+  } else {
     item.unlcok = 0;
   }
 }
 
 const itens = computed(() => {
-  return [...props.player.objects, ...props.player.weapons];
+  const allItens = [...props.player.objects, ...props.player.weapons];
+  const isMyItens = props.player.hash === store.myPlayer?.hash;
+  allItens.forEach(x => {
+    x.playerHash = props.player.hash
+    if(isMyItens)
+      x.unlock = 100;
+  });
+  if(isMyItens){
+    return allItens;
+  }
+  allItens.forEach((item: any) => {
+    store.cluesRevealed
+      .filter(x => x.playerHash === props.player.hash)
+      .map((x: any) => x.id)
+      .includes(item.id) ? item.unlock = 100 : item.unlock = 0;
+  });
+  return allItens;
 })
 </script>
 
 <template>
-  <el-dialog v-model="props.visible" id="base-player-info" fullscreen :close-on-click-modal="false"
+  <el-dialog v-model="props.visible" id="base-player-info" fullscreen 
+    :close-on-click-modal="false"
+    @close="emits('close')"
     :close-on-press-escape="false">
     <el-main>
       <el-card id="player-info">
@@ -62,7 +81,7 @@ const itens = computed(() => {
           <!-- round div with the player color as background -->
         </el-row>
         <div justify="end" class="personality">
-          {{props.player.personality.map(x => x.name).join(', ')}}
+          {{ props.player.personality.map(x => x.name).join(', ') }}
         </div>
         <el-row style="margin-top: 20px" justify="center">
           Pertences
@@ -71,14 +90,14 @@ const itens = computed(() => {
         <el-row>
           <el-main class="player-itens">
             <el-row :span="24" v-for="(item, i) of itens" :key="i">
-            <div v-if="item.unlock < 100 || !item.unlock" style="width: 100%; padding: 0px 10px 0px 10px;">
-              <span v-if="props.myPlayer.points > 0" class="demonstration">Arraste para decobrir</span>
-              <span  v-else class="demonstration has-no-points">Sem pontos suficientes</span>
-              <el-slider :disabled="props.myPlayer.points <= 0" v-model="item.unlock" @input="handleReveal(item)" />
+              <div v-if="item.unlock < 100 || !item.unlock" style="width: 100%; padding: 0px 10px 0px 10px;">
+                <span v-if="store.myPoints > 0" class="demonstration">Arraste para decobrir</span>
+                <span v-else class="demonstration has-no-points">Sem pontos suficientes</span>
+                <el-slider :disabled="store.myPoints <= 0" v-model="item.unlock" @input="handleReveal(item)" />
 
-            </div>
+              </div>
               <span v-else>{{ item.name }}</span>
-              </el-row>
+            </el-row>
           </el-main>
         </el-row>
       </el-card>
@@ -97,11 +116,13 @@ const itens = computed(() => {
 </style>
 <style lang="scss" scoped>
 $--el-color-primary: white;
+
 #player-info {
   // background color gradient of brown and white with opacity 0.5
   background-image: linear-gradient(to bottom, #473b3b 0%, rgb(54, 49, 49) 100%);
-  
+
   font-family: monospace;
+
   #title-file {
     font-size: 21px;
     font-weight: bold;
@@ -109,14 +130,16 @@ $--el-color-primary: white;
     margin-top: 20px;
     color: #fff;
   }
-  .el-row:first-child{
+
+  .el-row:first-child {
     margin-bottom: 10px;
   }
 
   .first-row {
     margin-bottom: -20px;
   }
-  .personality{
+
+  .personality {
     color: #9e9e9e;
   }
 
@@ -169,6 +192,7 @@ $--el-color-primary: white;
   .player-itens {
     width: 100%;
     color: rgb(142, 142, 0);
+
     .el-row {
       padding: 0px;
       margin: 0px;
@@ -176,7 +200,8 @@ $--el-color-primary: white;
       margin-bottom: 10px;
       font-size: 0.5em;
     }
-    .demonstration{
+
+    .demonstration {
       margin-top: 0px;
       width: 90%;
       margin-left: 10px;
@@ -185,9 +210,10 @@ $--el-color-primary: white;
       //font glowing green effect
       color: #00d463;
       text-shadow: 0 0 10px #00bcd4;
-      &.has-no-points{
-      color: #ff3535;
-      text-shadow: 0 0 10px #ff614c;
+
+      &.has-no-points {
+        color: #ff3535;
+        text-shadow: 0 0 10px #ff614c;
       }
     }
 
