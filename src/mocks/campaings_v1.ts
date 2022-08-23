@@ -9,37 +9,37 @@ export const __CAMPAING_V1_HOUSE: TypeCampaingV1 = {
   "narrative": "Você ouviu ligou para seu amigo Jhonny e ele não atendeu, você se reuniu com outros integrantes na porta, onde esta Jhonny?",
   "weapons": [
     {
-      "id": 1,
+      "id": 1001,
       "name": "Faca",
       "clue": "foi esfaqueado",
     },
     {
-      "id": 2,
+      "id": 1002,
       "name": "Pistola 9mm",
       "clue": "foi encontrado perfurado por balas de calibre 9mm",
     },
     {
-      "id": 3,
+      "id": 1003,
       "name": "Corda",
       "clue": "foi encontrado com traços de pressão no seu pescoço",
     },
     {
-      "id": 4,
+      "id": 1004,
       "name": "Travesseiro",
       "clue": "foi encontrado com rosto roxo, sem lesões físicas",
     },
     {
-      "id": 5,
+      "id": 1005,
       "name": "Saco Plástico",
       "clue": "foi encontrado com rosto roxo, sem lesões físicas",
     },
     {
-      "id": 6,
+      "id": 1006,
       "name": "Taco de Baiseboll",
       "clue": "foi encontrado com rosto todo desfigurado",
     },
     {
-      "id": 7,
+      "id": 1007,
       "name": "Taco de Baiseboll",
       "clue": "foi encontrado com furos no pescoço",
     },

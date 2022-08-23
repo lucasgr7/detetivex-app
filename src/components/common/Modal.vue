@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 
 
-const props = defineProps(['visible', 'forced', 'fullscreen', 'title']);
+const props = defineProps(['visible', 'forced', 'fullscreen', 'title', 'loading']);
+const emits = defineEmits(['close'])
 </script>
 
 <template>
@@ -12,7 +13,9 @@ const props = defineProps(['visible', 'forced', 'fullscreen', 'title']);
     :close-on-press-escape="!props.forced"
     :show-close="!props.forced"
     :title="props.title"
+    v-loading="props.loading"
     id="modal"
+    @close="emits('close')"
     style="width: 100%"
     >
     <el-main>

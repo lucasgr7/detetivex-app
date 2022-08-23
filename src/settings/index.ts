@@ -1,0 +1,6 @@
+export const GAME_SETTINGS = {
+  POINTS_EXPENSE: {
+    REVEAL_PLAYER_ITEM: 2,
+    PLACE_TRAP: 4
+  }
+}

@@ -2,7 +2,8 @@
 import { ElNotification } from 'element-plus';
 import { computed, onMounted, ref } from 'vue';
 import { useStoreV1 } from '../../store/appV1Store';
-import type { TypeMap, TypeCell, TypePlayerV1 } from '../../types/gamev1.js';
+import type { TypePlayerV1 } from '../../types/gamev1.js';
+import { GAME_SETTINGS } from "../../settings";
 
 const props = defineProps(['visible', 'player']);
 const emits = defineEmits(['reveal', 'close']);
@@ -27,13 +28,16 @@ function handleReveal(item: any) {
     return;
   }
   if (item.unlock === 100) {
-    console.log(item);
+    debugger;
     store.unlockPersonInfo(item);
   } else {
     item.unlcok = 0;
   }
 }
 
+const hasEnoughPoints = computed(() => {
+  return store.myPoints >= GAME_SETTINGS.POINTS_EXPENSE.REVEAL_PLAYER_ITEM
+});
 const itens = computed(() => {
   const allItens = [...props.player.objects, ...props.player.weapons];
   const isMyItens = props.player.hash === store.myPlayer?.hash;
@@ -91,9 +95,11 @@ const itens = computed(() => {
           <el-main class="player-itens">
             <el-row :span="24" v-for="(item, i) of itens" :key="i">
               <div v-if="item.unlock < 100 || !item.unlock" style="width: 100%; padding: 0px 10px 0px 10px;">
-                <span v-if="store.myPoints > 0" class="demonstration">Arraste para decobrir</span>
+                <span 
+                  v-if="hasEnoughPoints" 
+                  class="demonstration">Arraste para decobrir</span>
                 <span v-else class="demonstration has-no-points">Sem pontos suficientes</span>
-                <el-slider :disabled="store.myPoints <= 0" v-model="item.unlock" @input="handleReveal(item)" />
+                <el-slider :disabled="!hasEnoughPoints" v-model="item.unlock" @input="handleReveal(item)" />
 
               </div>
               <span v-else>{{ item.name }}</span>

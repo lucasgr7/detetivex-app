@@ -4,6 +4,9 @@ import { TypeAccusation } from "./game";
 // Campaing
 export interface TypeCampaingV1 {
   id: number
+  type: number;
+  url_image: string;
+  narrative: narrative;
   name: string
   urlImage: string
   map: number[]
@@ -76,4 +79,10 @@ export interface TypeCell {
   players?: TypePlayerV1[];
   hasTrap?: boolean;
   isNearBody?: boolean;
+}
+
+export interface TypeReveal {
+  image: string;
+  text: string;
+  hasClue: boolean;
 }

@@ -1,21 +1,23 @@
 import { defineStore, storeToRefs } from "pinia";
 import { useLocalStorage } from "@vueuse/core"
 import { createGameSession, fetchGameSession, genericsController } from "../api/scripts";
-import { TypeCell, TypeGameV1Session, TypePlayerV1 } from "../types/gamev1";
+import { TypeCell, TypeGameV1Session, TypePlayerV1, TypeReveal } from "../types/gamev1";
 import { generateHash, random } from "../helpers/functions";
 import { __CAMPAING_V1_HOUSE } from "../mocks/campaings_v1";
 import _ from "lodash";
 import { clueTypeGenerator } from "../helpers/clueGenerator";
+import { GAME_SETTINGS } from "../settings";
 
 export const useStoreV1 = defineStore('storeV1', {
   state: () => {
     return {
       hash: useLocalStorage('hash',  generateHash()),
       gameSession: useLocalStorage('gameSessionV1', {} as  TypeGameV1Session),
-      cellAt: useLocalStorage('cellAt', {} as any),
+      cellAt: useLocalStorage('cellAt', {} as TypeCell),
       freeForUpdate: true,
       cluesRevealed: useLocalStorage('cluesRevealed', [] as any),
       pointsSpent: useLocalStorage('pointsSpent', 0),
+      reveal: false
     }
   },
   getters: {
@@ -62,13 +64,42 @@ export const useStoreV1 = defineStore('storeV1', {
       if(!state.gameSession.map?.cells || state.gameSession.map?.cells?.length === 0) return false;
       return state.gameSession.map.cells.filter((cell: TypeCell) => cell?.isHiddenBody).length > 0;
     },
-    myPoints: state=> {
+    myPoints: state => {
       const total = state.gameSession.gameTurn - state.pointsSpent;
       if(total > 10) return 10;
       return total;
+    },
+    revealCell : (state): TypeReveal =>{
+      // INFO: 'far' pictures are actually near and near is far
+      let image = null;
+      let text = null;
+      let hasClue = false;
+      if(state.cellAt?.isNearBody){
+        // pick a random picture from the far pictures
+        const randomIndex = random(8) +1;
+        image = `/images/clues/near/far${randomIndex}.png`;
+        if(state.cellAt.clue){
+          text = state.cellAt?.clue;
+          hasClue = true;
+        }
+        if(text == null){
+          text = 'Você está próximo a algo importante';
+        }
+      }
+
+      if(text == null){
+        text = 'Não há nada por aqui...';
+      }
+      // if is far from body pic a far picture
+      if(image == null){
+        const randomIndex = random(9)+1;
+        image = `/images/clues/far/near${randomIndex}.png`;
+      }
+      return { image, text, hasClue } as TypeReveal
     }
   },
   actions: {
+    // Game Creation
     async createGame(id_campaign :number, player_count: number): Promise<number> {
       const response = await createGameSession({
         id_campaign,
@@ -102,13 +133,6 @@ export const useStoreV1 = defineStore('storeV1', {
       }
 
     },
-    _getMyPlayer_() {
-      const myPlayerIndex = _.findIndex(this.gameSession.players, (player: TypePlayerV1) => player.hash === this.hash);
-      const myPlayer = this.gameSession?.players?.find(player => player.hash === this.hash);
-      if(!myPlayer) return null;
-      myPlayer.is_assassin = myPlayerIndex === this.gameSession.assassin_index;
-      return myPlayer;
-    },
     async createPlayer(player: TypePlayerV1): Promise<boolean> {
       // validate user has color, if not assing a random one
       const defaultColors = ['red', 'blue', 'green', 'yellow'];
@@ -133,7 +157,7 @@ export const useStoreV1 = defineStore('storeV1', {
       const randomWeapon = campaing.weapons[random(campaing.weapons.length)];
       player.weapons = [randomWeapon];
       // pick three random object from the campaing and assing to the player
-      const randomObjects = _.shuffle(campaing.objects).slice(0, 3);
+      const randomObjects = _.shuffle(campaing.objects).slice(0, 6);
       randomObjects.forEach(object => {
         if(!object.type) return;
         // generate a random attribute for the object
@@ -151,13 +175,22 @@ export const useStoreV1 = defineStore('storeV1', {
       genericsController.sync(this.gameSession.id, this.gameSession);
       return true;
     },
+    _getMyPlayer_() {
+      const myPlayerIndex = _.findIndex(this.gameSession.players, (player: TypePlayerV1) => player.hash === this.hash);
+      const myPlayer = this.gameSession?.players?.find(player => player.hash === this.hash);
+      if(!myPlayer) return null;
+      myPlayer.is_assassin = myPlayerIndex === this.gameSession.assassin_index;
+      return myPlayer;
+    },
     clearMemory(){
       this.gameSession = {} as TypeGameV1Session;
       this.cellAt = {} as any;
       this.cluesRevealed = [];
       this.pointsSpent = 0;
     },
-    handleNextTurn(): void{
+
+    // game events
+    handleNextTurn(): void {
       if(this.gameSession.playerTurn === this.gameSession.players.length - 1){
         this.gameSession.playerTurn = 0;
       }else{
@@ -166,6 +199,75 @@ export const useStoreV1 = defineStore('storeV1', {
       this.gameSession.gameTurn += 1;
       this.saveGame();
       this.savePlayerCell();
+    },
+    saveGame(): void{
+      genericsController.sync(this.gameSession.id, this.gameSession);
+    },
+    savePlayerCell(): void{
+      // find cell where my player is at
+      const myPlayerCell = this.gameSession.map?.cells?.find(cell => cell.players?.find(player => player.hash === this.hash));
+      if(!myPlayerCell) return;
+      this.cellAt = myPlayerCell;
+      this.reveal = true;
+    },
+    unlockPersonInfo(itemRevealed: any): void{
+      this.spentPoints(GAME_SETTINGS.POINTS_EXPENSE.REVEAL_PLAYER_ITEM);
+      if(!this.cluesRevealed) this.cluesRevealed = [];
+      this.cluesRevealed.push(itemRevealed);
+      this.saveGame();
+    },
+    closeReveal(): void {
+      this.reveal = false;
+    },
+
+    // map
+    placeATrap(): void{
+      this.spentPoints(GAME_SETTINGS.POINTS_EXPENSE.PLACE_TRAP);
+      this.saveGame();
+    },
+    spentPoints(points: number): void{
+      if(!this.myPlayer) return;
+      const pointsUserWantSpent = this.pointsSpent + points;
+      const totalPoints = this.gameSession.gameTurn - pointsUserWantSpent;
+      if(totalPoints < 0){
+        throw new Error('Você não tem pontos suficientes');
+      }
+      this.pointsSpent += points;
+    },
+    purgeMyPlayerFromCells(){
+      for(let x = 0; x < this.gameSession.map.xAxis + 1; x++){
+        for(let y = 0; y < this.gameSession.map.yAxis + 1; y++){
+          const cell = this.getCellAt(x, y);
+          if(cell){
+            cell.players = cell.players?.filter(player => player.hash !== this.hash);
+          }
+        }
+      }
+    },
+    updateCells(cell: TypeCell){
+      this.gameSession.map.cells?.push(cell);
+      this.gameSession.map.cells = _.uniqBy(this.gameSession.map.cells, (x) => x.x + '-' + x.y);
+    },
+    getCellAt(x: number, y: number): TypeCell{
+      if(!this.gameSession.map || !this.gameSession.map.cells) return {} as TypeCell;
+      const playersAtThisCell = this.gameSession.players?.filter((player: TypePlayerV1) => 
+        player.position && 
+        player.position.length > 0 &&
+        player.position[0].x === x && 
+        player.position[0].y === y);
+      let cell =  this.gameSession.map.cells.filter(cell => cell.x === x && cell.y === y)[0];
+      if(!cell){
+        return {x, y, players: playersAtThisCell};
+      }
+      // append player to cell if he is not already at the cell
+      if(playersAtThisCell && playersAtThisCell.length > 0){
+        cell.players = _.uniq(playersAtThisCell);
+      }
+      // fix for when cell has no array for players
+      if(!cell?.players){
+        cell.players = [];
+      }
+      return cell;
     },
     placeCluesAroundCellWithBody(): void{
       console.table(this.gameSession?.map?.cells);
@@ -177,7 +279,7 @@ export const useStoreV1 = defineStore('storeV1', {
       if(!cellWithHiddenBody) return;
 
       const assassin = this.myPlayer;
-      if(!assassin?.objects || !assassin?.weapons) return;
+      if(assassin == null || assassin.objects == null || !assassin?.weapons) return;
       
       // place the death weapon clue
       cellWithHiddenBody.clue = assassin?.weapons[0].clue;
@@ -189,21 +291,20 @@ export const useStoreV1 = defineStore('storeV1', {
       });
       // select 3 random cells from cellsAround
       const randomCells = _.shuffle(cellsAround).slice(0, 3);
-      console.table(randomCells);
       // assign clues to the random cells
       randomCells.forEach((cell: TypeCell, idx: number) => {
-        cell.clue = assassin?.objects[idx].clue;
+        cell.clue = assassin.objects[idx].clue;
         this.gameSession.map.cells?.push(cell);
       });      
     },
     generateCellsAround(x: number, y: number): TypeCell[]{
       const cells = [];
-      for(let ix = -1; ix <= 1; ix++){
-        for(let iy = -1; iy <= 1; iy++){
-          if((ix + x === x && iy + y === y) || !this.isCellPositionValid(x + ix, y + iy)) continue;
+      for(let i = -1; i <= 1; i++){
+        for(let j = -1; j <= 1; j++){
+          if(i === 0 && j === 0) continue;
           const cell = {
-            x: x + ix,
-            y: y + iy,
+            x: x + i,
+            y: y + j,
             players: [],
           }
           cells.push(cell);
@@ -211,37 +312,5 @@ export const useStoreV1 = defineStore('storeV1', {
       }
       return cells;
     },
-    isCellPositionValid(x: number, y: number): boolean{
-      if(x > this.gameSession.map.xAxis || y > this.gameSession.map.yAxis || x === 0 || y === 0) return false;
-      return true;
-    },
-    saveGame(): void{
-      genericsController.sync(this.gameSession.id, this.gameSession);
-    },
-    savePlayerCell(): void{
-      // find cell where my player is at
-      const myPlayerCell = this.gameSession.map?.cells?.find(cell => cell.players?.find(player => player.hash === this.hash));
-      if(!myPlayerCell) return;
-      this.cellAt = myPlayerCell;
-    },
-    unlockPersonInfo(itemRevealed: any): void{
-      this.spentPoints(2);
-      if(!this.cluesRevealed) this.cluesRevealed = [];
-      this.cluesRevealed.push(itemRevealed);
-      this.saveGame();
-    },
-    placeATrap(): void{
-      this.spentPoints(4);
-      this.saveGame();
-    },
-    spentPoints(points: number): void{
-      if(!this.myPlayer) return;
-      const pointsUserWantSpent = this.pointsSpent + points;
-      const totalPoints = this.gameSession.gameTurn - pointsUserWantSpent;
-      if(totalPoints < 0){
-        throw new Error('Você não tem pontos suficientes');
-      }
-      this.pointsSpent += points;
-    }
-  },
+  }
 });

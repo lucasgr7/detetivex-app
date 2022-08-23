@@ -10,9 +10,10 @@ import { useRoute } from 'vue-router';
 import { TypeCell, TypeMap } from '../types/gamev1';
 import { ElMessage } from 'element-plus';
 import { computed } from '@vue/reactivity';
-import Description from '../components/v1/Description.vue';
+import AssassinWelcome from '../components/v1/AssassinWelcome.vue';
 import IndicatorPoints from '../components/v1/IndicatorPoints.vue';
 import Debug from '../components/v1/Debug.vue';
+import Reveal from '../components/v1/Reveal.vue';
 
 const TURN_HIDE_BODY = 1;
 const TURN_MOVE = 2;
@@ -132,7 +133,8 @@ onMounted(async () => {
     </el-row>
     <IndicatorPoints></IndicatorPoints>
     <Debug></Debug>
-    <Description :visible="showAssassinInfo"></Description>
+    <AssassinWelcome :visible="showAssassinInfo"></AssassinWelcome>
+    <Reveal :visible="store.reveal" :reveal="store.revealCell" @close="store.closeReveal" />
     <CreatePlayer 
       :visible="store.showCreatePlayer"
       @created="handleCreatePlayer"></CreatePlayer>
@@ -148,7 +150,8 @@ onMounted(async () => {
       :disabled="gameTurn !== TURN_HIDE_BODY && !store.isMyTurn"
       :turn-hide-body="gameTurn === TURN_HIDE_BODY"
       @next-turn="handleFinishTurn"
-      @trap-install="handleActivateTrapInstall"></Joystickv1>
+      @trap-install="handleActivateTrapInstall">
+    </Joystickv1>
   </el-main>
 </template>
 
