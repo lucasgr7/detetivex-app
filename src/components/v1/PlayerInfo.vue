@@ -28,7 +28,6 @@ function handleReveal(item: any) {
     return;
   }
   if (item.unlock === 100) {
-    debugger;
     store.unlockPersonInfo(item);
   } else {
     item.unlcok = 0;

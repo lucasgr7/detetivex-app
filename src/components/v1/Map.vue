@@ -172,9 +172,6 @@ function getCellAt(x: number, y: number) {
 
 <template>
   <div id="map">
-    <el-row justify="center">
-      <h2>Mapa</h2>
-    </el-row>
     <el-row>
       <el-col :xs="6">
         <h2>

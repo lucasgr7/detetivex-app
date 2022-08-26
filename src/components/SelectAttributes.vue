@@ -25,14 +25,12 @@ function handleRandomize(): void {
 
   attributes.value.map(x => x.selected = false);
 
-  setTimeout(() => {
-    const randomAttributes = _.shuffle(props.attributes);
-    const options = randomAttributes.slice(0, 5);
-    options.push({ id: 0, name: 'Nenhuma', points: 0 });
-    attributes.value = options;
-    limit.value--;
-    isRandomizing.value = false;
-  }, isRandomizing.value ? 1500 : 0);
+  const randomAttributes = _.shuffle(props.attributes);
+  const options = randomAttributes.slice(0, 5);
+  options.push({ id: 0, name: 'Nenhuma', points: 0 });
+  attributes.value = options;
+  limit.value--;
+  isRandomizing.value = false;
 }
 const playerMessage = computed(() => {
   return `Seu personagem será: ${attributes.value

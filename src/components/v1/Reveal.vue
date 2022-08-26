@@ -1,9 +1,10 @@
 <script lang="ts" setup>
-import { computed, PropType } from 'vue';
+import { computed, PropType, watch } from 'vue';
 import { TypeReveal } from '../../types/gamev1';
 import Modal from '../common/Modal.vue';
+import { useStoreV1 } from '../../store/appV1Store.js';
 
-
+const store = useStoreV1();
 const props = defineProps({
   visible: Boolean,
   reveal: Object as PropType<TypeReveal>
@@ -12,6 +13,12 @@ const emits = defineEmits(['close'])
 
 const image = computed(() => {
   return new URL(props.reveal?.image ?? '', import.meta.url).href
+});
+
+watch(() => props.reveal, () => {
+  if(!props.reveal?.text) return;
+  if(props.reveal?.hasClue)
+    store.saveReavealedClue(props.reveal?.text);
 })
 
 </script>

@@ -17,7 +17,8 @@ export const useStoreV1 = defineStore('storeV1', {
       freeForUpdate: true,
       cluesRevealed: useLocalStorage('cluesRevealed', [] as any),
       pointsSpent: useLocalStorage('pointsSpent', 0),
-      reveal: false
+      reveal: false,
+      cache: useLocalStorage('cache', [] as any),
     }
   },
   getters: {
@@ -114,6 +115,7 @@ export const useStoreV1 = defineStore('storeV1', {
         players: [],
         playerTurn: random(player_count),
         gameTurn: 0,
+        revealed_clues: [],
         map: {
           yAxis: 5,
           xAxis: 5,
@@ -157,7 +159,7 @@ export const useStoreV1 = defineStore('storeV1', {
       const randomWeapon = campaing.weapons[random(campaing.weapons.length)];
       player.weapons = [randomWeapon];
       // pick three random object from the campaing and assing to the player
-      const randomObjects = _.shuffle(campaing.objects).slice(0, 6);
+      const randomObjects = _.shuffle(campaing.objects).slice(0, 4);
       randomObjects.forEach(object => {
         if(!object.type) return;
         // generate a random attribute for the object
@@ -218,6 +220,13 @@ export const useStoreV1 = defineStore('storeV1', {
     },
     closeReveal(): void {
       this.reveal = false;
+    },
+    saveReavealedClue(clue: string): void{
+      debugger;
+      if(!this.gameSession.revealed_clues.includes(clue)){
+        this.gameSession.revealed_clues.push(clue);
+        this.saveGame();
+      }
     },
 
     // map

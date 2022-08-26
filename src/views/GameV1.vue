@@ -14,6 +14,7 @@ import AssassinWelcome from '../components/v1/AssassinWelcome.vue';
 import IndicatorPoints from '../components/v1/IndicatorPoints.vue';
 import Debug from '../components/v1/Debug.vue';
 import Reveal from '../components/v1/Reveal.vue';
+import DiscoveredClues from '../components/v1/DiscoveredClues.vue';
 
 const TURN_HIDE_BODY = 1;
 const TURN_MOVE = 2;
@@ -23,7 +24,6 @@ const route = useRoute();
 const gameTurn = ref(TURN_MOVE);
 const showAssassinInfo = ref(false);
 const idGameSession = typeof(route.params?.id) === 'string' ? parseInt(route.params?.id) : parseInt(route.params?.id[0]);
-const hasFindAnything = ref(false);
 
 function handleCreatePlayer(player: any){
   store.createPlayer(player);
@@ -146,6 +146,7 @@ onMounted(async () => {
       :hash-player-turn="store.hashPlayerTurn"
       :me="store.myPlayer" @trap-installed="handleTrapInstalled">
     </Map>
+    <DiscoveredClues  v-if="store.gameSession.revealed_clues?.length > 0" />
     <Joystickv1
       :disabled="gameTurn !== TURN_HIDE_BODY && !store.isMyTurn"
       :turn-hide-body="gameTurn === TURN_HIDE_BODY"
