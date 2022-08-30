@@ -1,6 +1,19 @@
 <script lang="ts" setup>
+import { GAME_SETTINGS } from '../../settings';
+import { useStoreV1 } from '../../store/appV1Store';
+
 const emits = defineEmits(['next-turn', 'trap-install']);
 const props = defineProps(['disabled', 'turnHideBody']);
+const store = useStoreV1();
+
+function isDisableActionsButton() {
+  if(store.myPlayer?.is_assassin){
+    return store.myPoints >= GAME_SETTINGS.POINTS_EXPENSE.PLACE_TRAP
+  }
+  //TODO: Implement when users find the body
+  return false;
+}
+
 </script>
 
 <template>
@@ -8,7 +21,7 @@ const props = defineProps(['disabled', 'turnHideBody']);
   <el-row justify="center">
     <el-col :xs="12" :sm="12" :md="12" :lg="12" :xl="12">
       <!-- button to the next turn -->
-      <el-button type="default" id="next-turn" @click="emits('trap-install')">
+      <el-button v-if="isDisableActionsButton()" type="default" id="next-turn" @click="emits('trap-install')">
         <el-icon><Position /></el-icon>
       </el-button>
     </el-col>
