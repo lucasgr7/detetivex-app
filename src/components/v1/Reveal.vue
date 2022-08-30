@@ -19,7 +19,7 @@ watch(() => props.reveal, () => {
   if(!props.reveal?.text) return;
   if(props.reveal?.hasClue)
     store.saveReavealedClue(props.reveal?.text);
-})
+});
 
 </script>
 <template>

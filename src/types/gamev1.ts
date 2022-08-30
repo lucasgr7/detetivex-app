@@ -43,6 +43,7 @@ export interface TypeGameV1Session {
   hasAssassinHideTheBody?: boolean;
   gameTurn: number;
   revealed_clues: string[];
+  is_victim_found: boolean;
 }
 
 export interface TypeEvent{

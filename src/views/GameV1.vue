@@ -62,6 +62,10 @@ watch(() => store.isMyTurn, (isMyTurnNow: boolean) => {
 watch(() => store.hasGameStarted, (myPlayer: any) => {
   handleEnableHideBody();
 });
+// watch game ponits changes
+watch(() => store.myPoints, (gamePoints: number) => {
+  gameTurn.value = TURN_MOVE;
+});
 
 
 // actions

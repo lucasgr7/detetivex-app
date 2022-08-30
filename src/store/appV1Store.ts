@@ -87,6 +87,11 @@ export const useStoreV1 = defineStore('storeV1', {
           text = 'Você está próximo a algo importante';
         }
       }
+      else if(state.cellAt.isHiddenBody){
+        image = `/images/clues/body-found.png`;
+        text = 'Vítima encontrada ' + state.cellAt.clue;
+        hasClue = true;
+      }
 
       if(text == null){
         text = 'Não há nada por aqui...';
@@ -199,8 +204,8 @@ export const useStoreV1 = defineStore('storeV1', {
         this.gameSession.playerTurn++;
       }
       this.gameSession.gameTurn += 1;
-      this.saveGame();
       this.savePlayerCell();
+      this.saveGame();
     },
     saveGame(): void{
       genericsController.sync(this.gameSession.id, this.gameSession);
@@ -211,6 +216,10 @@ export const useStoreV1 = defineStore('storeV1', {
       if(!myPlayerCell) return;
       this.cellAt = myPlayerCell;
       this.reveal = true;
+      debugger;
+      if(myPlayerCell.isHiddenBody){
+        this.gameSession.is_victim_found = true;
+      }
     },
     unlockPersonInfo(itemRevealed: any): void{
       this.spentPoints(GAME_SETTINGS.POINTS_EXPENSE.REVEAL_PLAYER_ITEM);
@@ -222,7 +231,6 @@ export const useStoreV1 = defineStore('storeV1', {
       this.reveal = false;
     },
     saveReavealedClue(clue: string): void{
-      debugger;
       if(!this.gameSession.revealed_clues.includes(clue)){
         this.gameSession.revealed_clues.push(clue);
         this.saveGame();
