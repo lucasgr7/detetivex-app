@@ -16,7 +16,7 @@ const props = defineProps([
   'hashPlayerTurn',
   'disabled']);
 const emits = defineEmits(['trap-installed']);
-const __notify__ = {
+const _notify = {
   waitYourTurn: () => {
     ElNotification({
       title: 'Espere seu turno',
@@ -60,7 +60,7 @@ const playersWithoutPosition = computed(() => {
 
 function handleTileMapClick(x: number, y: number) {
   if (props.disabled && props.turn !== TURN_INSTALL_TRAP && props.turn !== TURN_HIDE_BODY) {
-    __notify__.waitYourTurn();
+    _notify.waitYourTurn();
     return;
   }
   if (props.isAssassin) {
@@ -73,22 +73,21 @@ function handleTileMapClick(x: number, y: number) {
     else if (props.turn === TURN_INSTALL_TRAP) {
       const cell = getCellAt(x, y);
       if (!hasPossibilityInstalTrap(x, y)) {
-        __notify__.youCannotInstallTrapHere();
+        _notify.youCannotInstallTrapHere();
         return;
       }
       if (cell.hasTrap) {
-        __notify__.alreadyHasATrap();
+        _notify.alreadyHasATrap();
         return;
       }
       try {
-        cell.hasTrap = true
-        store.placeATrap();
+        store.placeTrap(cell);
         updateCells(cell);
-        __notify__.trapPlaced(cell);
+        _notify.trapPlaced(cell);
       }
       catch (exc: any) {
         cell.hasTrap = false;
-        __notify__.excep(exc);
+        _notify.excep(exc);
       }
     } else {
       movePlayer(x, y);

@@ -18,7 +18,7 @@ export const useStoreV1 = defineStore('storeV1', {
       cluesRevealed: useLocalStorage('cluesRevealed', [] as any),
       pointsSpent: useLocalStorage('pointsSpent', 0),
       reveal: false,
-      cache: useLocalStorage('cache', [] as any),
+      queueTraps: useLocalStorage('queueTraps', [] as any),
     }
   },
   getters: {
@@ -208,6 +208,9 @@ export const useStoreV1 = defineStore('storeV1', {
       this.saveGame();
     },
     saveGame(): void{
+      if(this.queueTraps?.length > 0){
+        this.dequeueTrap();
+      }
       genericsController.sync(this.gameSession.id, this.gameSession);
     },
     savePlayerCell(): void{
@@ -238,9 +241,20 @@ export const useStoreV1 = defineStore('storeV1', {
     },
 
     // map
-    placeATrap(): void{
+    placeTrap(cell: TypeCell): void{
+      cell.hasTrap = true;
       this.spentPoints(GAME_SETTINGS.POINTS_EXPENSE.PLACE_TRAP);
-      this.saveGame();
+      this.queueTraps.push(cell);
+    },
+    dequeueTrap(): void{
+      const myPlayer = this._getMyPlayer_();
+      if(myPlayer?.is_assassin){
+        // iterate each queueTrap
+        this.queueTraps.forEach((cell: TypeCell) => {
+          this.updateCells(cell);
+        });
+        this.queueTraps = [];
+      }
     },
     spentPoints(points: number): void{
       if(!this.myPlayer) return;
@@ -262,7 +276,18 @@ export const useStoreV1 = defineStore('storeV1', {
       }
     },
     updateCells(cell: TypeCell){
-      this.gameSession.map.cells?.push(cell);
+      // check cell exist in map
+      const cellInMap = this.getCellAt(cell.x, cell.y);
+      if(!cellInMap){
+        this.gameSession.map.cells?.push(cell);
+      }
+      else{
+        // update cell
+        cellInMap.hasTrap = cell.hasTrap;
+        cellInMap.isHiddenBody = cell.isHiddenBody;
+        cellInMap.players = cell.players;
+        this.gameSession.map.cells?.push(cellInMap);
+      }
       this.gameSession.map.cells = _.uniqBy(this.gameSession.map.cells, (x) => x.x + '-' + x.y);
     },
     getCellAt(x: number, y: number): TypeCell{
